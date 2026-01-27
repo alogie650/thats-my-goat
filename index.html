@@ -3,65 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Curry Tracker 30</title>
+    <title>That's my GOAT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #006BB6; color: white; font-family: 'Inter', sans-serif; }
-        .stat-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 201, 23, 0.3); }
-        .accent { color: #FDB927; }
+        body { background-color: #0f172a; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .goat-gold { color: #fbbf24; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6">
-    
-    <header class="text-center mb-10">
-        <h1 class="text-6xl font-black italic tracking-tighter uppercase accent">Wardell Stephen Curry</h1>
-        <p class="text-xl opacity-80 uppercase tracking-widest">Live Statistical Dominance • Season 2025-26</p>
-    </header>
+<body class="min-h-screen p-8">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-        <div class="stat-card p-8 rounded-3xl">
-            <h2 class="text-2xl font-bold mb-4 uppercase border-b border-yellow-500/30 pb-2">25-26 Season Highs</h2>
-            <div class="space-y-4" id="season-stats">
-                <div class="flex justify-between"><span class="opacity-70">Points Per Game</span> <span class="text-2xl font-mono">27.3 <small class="text-sm accent">#3 NBA</small></span></div>
-                <div class="flex justify-between"><span class="opacity-70">3PM Per Game</span> <span class="text-2xl font-mono">4.5 <small class="text-sm accent">#1 NBA</small></span></div>
-                <div class="flex justify-between"><span class="opacity-70">Free Throw %</span> <span class="text-2xl font-mono">93.1% <small class="text-sm accent">#1 NBA</small></span></div>
-            </div>
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-5xl font-black mb-2 uppercase tracking-tighter">That's my <span class="goat-gold">GOAT</span></h1>
+        <p class="mb-8 opacity-60">Search any active or retired player to settle the debate.</p>
+
+        <div class="flex gap-2 mb-12">
+            <input id="player-search" type="text" placeholder="Enter player name (e.g. Kobe Bryant)" 
+                   class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:outline-none focus:border-yellow-500 transition">
+            <button onclick="findGoat()" class="bg-yellow-500 text-black font-bold px-8 rounded-xl hover:bg-yellow-400 transition">SEARCH</button>
         </div>
 
-        <div class="stat-card p-8 rounded-3xl">
-            <h2 class="text-2xl font-bold mb-4 uppercase border-b border-yellow-500/30 pb-2">All-Time Status</h2>
-            <div class="space-y-4">
-                <div class="flex justify-between"><span class="opacity-70">3-Pointers Made</span> <span class="text-2xl font-mono">4,225+ <small class="text-sm accent">#1 All-Time</small></span></div>
-                <div class="flex justify-between"><span class="opacity-70">Career FT%</span> <span class="text-2xl font-mono">91.2% <small class="text-sm accent">#1 All-Time</small></span></div>
-                <div class="flex justify-between"><span class="opacity-70">Total Points</span> <span class="text-2xl font-mono">24,000+ <small class="text-sm accent">Top 25</small></span></div>
+        <div id="loading" class="hidden italic opacity-50 mb-4 text-center">Consulting the history books...</div>
+
+        <div id="result-area" class="hidden space-y-6">
+            <div class="glass p-8 rounded-3xl text-left">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 id="player-name" class="text-4xl font-bold uppercase">---</h2>
+                        <p id="player-team" class="opacity-60 text-lg uppercase tracking-widest">---</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs uppercase opacity-50 block">GOAT Tier Status</span>
+                        <span id="goat-badge" class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-sm font-bold">LEGEND</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="p-4 bg-white/5 rounded-2xl"><span class="block text-xs opacity-50">CAREER PPG</span><span id="stat-ppg" class="text-2xl font-mono">--</span></div>
+                    <div class="p-4 bg-white/5 rounded-2xl"><span class="block text-xs opacity-50">CAREER REB</span><span id="stat-reb" class="text-2xl font-mono">--</span></div>
+                    <div class="p-4 bg-white/5 rounded-2xl"><span class="block text-xs opacity-50">CAREER AST</span><span id="stat-ast" class="text-2xl font-mono">--</span></div>
+                    <div class="p-4 bg-white/5 rounded-2xl"><span class="block text-xs opacity-50">ALL-TIME RANK</span><span id="stat-rank" class="text-2xl font-mono">TOP 50</span></div>
+                </div>
+
+                <div class="border-t border-white/10 pt-6">
+                    <h3 class="text-sm font-bold uppercase mb-2 goat-gold">AI Case Summary:</h3>
+                    <p id="ai-summary" class="leading-relaxed opacity-80 italic">Select a player to generate their legacy report...</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="mt-12 text-sm opacity-50 italic">
-        Last refreshed: <span id="refresh-time"></span> — "Night Night." 💤
-    </footer>
-
     <script>
-        // Update the refresh timestamp
-        document.getElementById('refresh-time').innerText = new Date().toLocaleString();
+        async function findGoat() {
+            const query = document.getElementById('player-search').value;
+            const loading = document.getElementById('loading');
+            const resultArea = document.getElementById('result-area');
+            
+            if(!query) return;
 
-        // Vibe Logic: Refresh the page every morning (at 6:00 AM)
-        const now = new Date();
-        const nextRefresh = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
-        const msUntilRefresh = nextRefresh - now;
-        
-        setTimeout(() => {
-            window.location.reload();
-        }, msUntilRefresh);
+            loading.classList.remove('hidden');
+            resultArea.classList.add('hidden');
 
-        // API Fetching (Simplified Concept)
-        async function getStephStats() {
-            // Note: In a real app, you'd call the balldontlie API here
-            // fetch('https://www.balldontlie.io/api/v1/season_averages?player_ids[]=115')
-            console.log("Fetching the chef's latest cookery...");
+            try {
+                // In a production app, you'd fetch from: https://api.balldontlie.io/v1/players?search=${query}
+                // For this demo, we'll simulate the response vibe.
+                setTimeout(() => {
+                    document.getElementById('player-name').innerText = query;
+                    document.getElementById('stat-ppg').innerText = "27.1";
+                    document.getElementById('stat-ast').innerText = "7.5";
+                    document.getElementById('stat-reb').innerText = "7.3";
+                    document.getElementById('ai-summary').innerText = `Based on a career spanning decades, ${query} demonstrates statistical dominance that transcends eras. Their efficiency in high-leverage situations and impact on winning culture makes them a definitive candidate for the greatest to ever play the game.`;
+                    
+                    loading.classList.add('hidden');
+                    resultArea.classList.remove('hidden');
+                }, 800);
+            } catch (err) {
+                alert("The Chef is busy, try again later.");
+            }
         }
-        getStephStats();
     </script>
 </body>
 </html>
