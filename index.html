@@ -63,81 +63,75 @@
     </div>
 
     <script>
-        // Make sure this matches EXACTLY what you got from balldontlie.io
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
 
-        async function findGoat() {
-            const query = document.getElementById('player-search').value.trim();
-            const statusText = document.getElementById('status-text');
-            const loading = document.getElementById('loading');
-            const resultArea = document.getElementById('result-area');
+async function findGoat() {
+    const query = document.getElementById('player-search').value.trim();
+    const statusText = document.getElementById('status-text');
+    const loading = document.getElementById('loading');
+    const resultArea = document.getElementById('result-area');
 
-            if (!query) return;
+    if (!query) return;
 
-            loading.classList.remove('hidden');
-            resultArea.classList.add('hidden');
-            statusText.innerText = "Connecting...";
-            statusText.className = "text-yellow-400";
+    loading.classList.remove('hidden');
+    resultArea.classList.add('hidden');
+    statusText.innerText = "Verifying Key...";
 
-            try {
-                // Fetch Player
-                const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: { 
-                        'Authorization': API_KEY,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!pRes.ok) {
-                    throw new Error(`Server Error: ${pRes.status}`);
-                }
-                
-                const pData = await pRes.json();
-                const player = pData.data[0];
-
-                if (!player) {
-                    statusText.innerText = "No Player Found";
-                    statusText.className = "text-red-500";
-                    loading.classList.add('hidden');
-                    return;
-                }
-
-                // Fetch Stats
-                const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: { 
-                        'Authorization': API_KEY,
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                const sData = await sRes.json();
-                const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
-
-                // Success!
-                statusText.innerText = "Online";
-                statusText.className = "text-green-400";
-                
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-team').innerText = player.team?.full_name || "NBA Archive";
-                document.getElementById('stat-ppg').innerText = stats.pts || "0.0";
-                document.getElementById('stat-reb').innerText = stats.reb || "0.0";
-                document.getElementById('stat-ast').innerText = stats.ast || "0.0";
-                document.getElementById('ai-summary').innerText = stats.pts > 20 ? "Elite scoring presence." : "Tactical impact player.";
-
-                resultArea.classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = err.message;
-                statusText.className = "text-red-500";
-            } finally {
-                loading.classList.add('hidden');
+    try {
+        // STEP 1: PLAYER SEARCH
+        const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+            method: 'GET',
+            headers: { 
+                'Authorization': API_KEY.trim(), // Ensure no hidden spaces
+                'Accept': 'application/json'
             }
+        });
+
+        // CRITICAL CHECK: If not OK, read as Text first to avoid the 'U' error
+        if (!pRes.ok) {
+            const errorText = await pRes.text(); 
+            throw new Error(`Server says: ${errorText} (${pRes.status})`);
         }
+        
+        const pData = await pRes.json();
+        const player = pData.data ? pData.data[0] : null;
+
+        if (!player) {
+            statusText.innerText = "Player Not Found";
+            loading.classList.add('hidden');
+            return;
+        }
+
+        // STEP 2: STATS SEARCH
+        const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
+            headers: { 'Authorization': API_KEY.trim() }
+        });
+        
+        if (!sRes.ok) throw new Error("Stats request failed");
+        
+        const sData = await sRes.json();
+        const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
+
+        // UI UPDATE
+        statusText.innerText = "Online";
+        document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+        document.getElementById('player-team').innerText = player.team?.full_name || "NBA";
+        document.getElementById('stat-ppg').innerText = stats.pts || "0.0";
+        document.getElementById('stat-reb').innerText = stats.reb || "0.0";
+        document.getElementById('stat-ast').innerText = stats.ast || "0.0";
+        document.getElementById('ai-summary').innerText = stats.pts > 20 ? "Pure scoring machine." : "Role-player excellence.";
+
+        resultArea.classList.remove('hidden');
+
+    } catch (err) {
+        console.error(err);
+        // This will now say "Server says: Unauthorized" instead of crashing
+        statusText.innerText = err.message;
+        statusText.className = "text-red-500 font-bold";
+    } finally {
+        loading.classList.add('hidden');
+    }
+}
     </script>
 </body>
 </html>
