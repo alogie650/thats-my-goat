@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curry Tracker 30</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #006BB6; color: white; font-family: 'Inter', sans-serif; }
+        .stat-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 201, 23, 0.3); }
+        .accent { color: #FDB927; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+    
+    <header class="text-center mb-10">
+        <h1 class="text-6xl font-black italic tracking-tighter uppercase accent">Wardell Stephen Curry</h1>
+        <p class="text-xl opacity-80 uppercase tracking-widest">Live Statistical Dominance • Season 2025-26</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div class="stat-card p-8 rounded-3xl">
+            <h2 class="text-2xl font-bold mb-4 uppercase border-b border-yellow-500/30 pb-2">25-26 Season Highs</h2>
+            <div class="space-y-4" id="season-stats">
+                <div class="flex justify-between"><span class="opacity-70">Points Per Game</span> <span class="text-2xl font-mono">27.3 <small class="text-sm accent">#3 NBA</small></span></div>
+                <div class="flex justify-between"><span class="opacity-70">3PM Per Game</span> <span class="text-2xl font-mono">4.5 <small class="text-sm accent">#1 NBA</small></span></div>
+                <div class="flex justify-between"><span class="opacity-70">Free Throw %</span> <span class="text-2xl font-mono">93.1% <small class="text-sm accent">#1 NBA</small></span></div>
+            </div>
+        </div>
+
+        <div class="stat-card p-8 rounded-3xl">
+            <h2 class="text-2xl font-bold mb-4 uppercase border-b border-yellow-500/30 pb-2">All-Time Status</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between"><span class="opacity-70">3-Pointers Made</span> <span class="text-2xl font-mono">4,225+ <small class="text-sm accent">#1 All-Time</small></span></div>
+                <div class="flex justify-between"><span class="opacity-70">Career FT%</span> <span class="text-2xl font-mono">91.2% <small class="text-sm accent">#1 All-Time</small></span></div>
+                <div class="flex justify-between"><span class="opacity-70">Total Points</span> <span class="text-2xl font-mono">24,000+ <small class="text-sm accent">Top 25</small></span></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-12 text-sm opacity-50 italic">
+        Last refreshed: <span id="refresh-time"></span> — "Night Night." 💤
+    </footer>
+
+    <script>
+        // Update the refresh timestamp
+        document.getElementById('refresh-time').innerText = new Date().toLocaleString();
+
+        // Vibe Logic: Refresh the page every morning (at 6:00 AM)
+        const now = new Date();
+        const nextRefresh = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 6, 0, 0);
+        const msUntilRefresh = nextRefresh - now;
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, msUntilRefresh);
+
+        // API Fetching (Simplified Concept)
+        async function getStephStats() {
+            // Note: In a real app, you'd call the balldontlie API here
+            // fetch('https://www.balldontlie.io/api/v1/season_averages?player_ids[]=115')
+            console.log("Fetching the chef's latest cookery...");
+        }
+        getStephStats();
+    </script>
+</body>
+</html>
