@@ -3,35 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT | Terminal</title>
+    <title>That's My GOAT | Solid Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
         
         body { 
-            background-color: #050505; 
-            color: #ffffff; 
+            background-color: #000000; /* Solid Black */
+            color: #ffffff; /* Solid White */
             font-family: 'Special Elite', typewriter, serif; 
             overflow-x: hidden;
+            margin: 0;
         }
         
-        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid #222; position: relative; }
-        .neon-green { color: #39FF14; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+        /* Clean Containers */
+        .solid-box { 
+            background: #0a0a0a; 
+            border: 2px solid #222; 
+            position: relative; 
+        }
+
+        .neon-green { 
+            color: #39FF14; 
+            /* Text-shadow kept minimal for sharpness */
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.3); 
+        }
         
         /* THE CURSOR LOGIC */
         .terminal-container { position: relative; display: flex; align-items: center; width: 100%; }
         
         #player-search {
-            caret-color: transparent; /* Hide the modern cursor */
+            caret-color: transparent; 
             z-index: 2;
         }
 
         #fake-cursor {
             position: absolute;
-            width: 12px;
-            height: 24px;
+            width: 14px;
+            height: 26px;
             background-color: #39FF14;
-            animation: blink 1s step-end infinite;
+            animation: blink 0.8s step-end infinite;
             pointer-events: none;
             z-index: 1;
             display: inline-block;
@@ -42,18 +53,9 @@
             50% { opacity: 0; }
         }
 
-        /* Scanlines */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            z-index: 100;
-            background-size: 100% 4px;
-            pointer-events: none;
-            opacity: 0.15;
-        }
+        /* Suggestion Hover */
+        .suggestion-item { transition: none; border-bottom: 1px solid #111; }
+        .suggestion-item:hover { background: #39FF14; color: #000; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12" onload="updateCursor()">
@@ -63,13 +65,13 @@
             <h1 class="text-5xl md:text-7xl font-black mb-2 uppercase italic">
                 THAT'S MY <span class="neon-green">GOAT</span>
             </h1>
-            <div class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40 border border-white/10 px-4 py-1 rounded-sm inline-block">
+            <div class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-60 border border-white/20 px-4 py-1 inline-block">
                 SYS_STATUS: READY
             </div>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="glass p-2 rounded-lg flex gap-2 items-center border-white/10 focus-within:border-[#39FF14] transition-all">
+            <div class="solid-box p-2 rounded-none flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
                 <div class="terminal-container flex-1">
                     <input id="player-search" type="text" autocomplete="off"
                            placeholder="" 
@@ -80,20 +82,33 @@
                     <div id="fake-cursor"></div>
                 </div>
                 
-                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-black px-6 py-4 rounded-sm hover:bg-white transition uppercase text-xs tracking-widest">
+                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-black px-8 py-4 rounded-none hover:bg-white transition-colors uppercase text-sm tracking-widest">
                     EXECUTE
                 </button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-lg overflow-hidden z-50 border border-white/10"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div class="glass p-8 md:p-12 rounded-lg border-l-8 border-[#39FF14]">
-                <h2 id="p-name" class="text-4xl md:text-6xl font-bold uppercase tracking-tight neon-green">---</h2>
-                <p id="p-team" class="text-2xl font-bold uppercase italic mt-2">---</p>
-                <div class="grid grid-cols-2 mt-8 gap-6 border-t border-white/10 pt-6">
-                    <div><span class="block text-[10px] opacity-40 uppercase">Height</span><span id="p-height" class="text-2xl">--</span></div>
-                    <div><span class="block text-[10px] opacity-40 uppercase">Weight</span><span id="p-weight" class="text-2xl">--</span></div>
+            <div class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
+                <div class="mb-8">
+                    <h2 id="p-name" class="text-4xl md:text-6xl font-bold uppercase tracking-tight neon-green">---</h2>
+                    <p id="p-team" class="text-2xl font-bold uppercase italic mt-2 text-white opacity-90">---</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-8 border-t-2 border-white/10 pt-8">
+                    <div>
+                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Height</span>
+                        <span id="p-height" class="text-3xl font-bold">--</span>
+                    </div>
+                    <div>
+                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Weight</span>
+                        <span id="p-weight" class="text-3xl font-bold">--</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Conference</span>
+                        <span id="p-conf" class="text-3xl font-bold uppercase">--</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,6 +118,7 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+        let debounceTimer;
 
         function handleInput(el) {
             updateCursor();
@@ -118,17 +134,10 @@
             const input = document.getElementById('player-search');
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
-            
-            // Measure the width of current text
             measurer.innerText = input.value || "";
-            const textWidth = measurer.offsetWidth;
-            
-            // 16px is the initial padding-left of the input
-            cursor.style.left = (16 + textWidth) + "px";
+            cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
-        // --- Standard Logic Below ---
-        let debounceTimer;
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
             if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
@@ -152,8 +161,8 @@
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 cursor-pointer border-b border-white/5 uppercase';
-                div.innerHTML = `${p.first_name} ${p.last_name}`;
+                div.className = 'suggestion-item p-4 cursor-pointer font-bold uppercase';
+                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 text-xs ml-2">${p.team.abbreviation}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -162,6 +171,7 @@
 
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
+            if (!query) return;
             const results = await fetchPlayers(query, false);
             if (results && results.length > 0) selectPlayer(results[0]);
         }
@@ -170,4 +180,15 @@
             document.getElementById('suggestions').classList.add('hidden');
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
-            document.getElementById('p-name').innerText = `${p
+            
+            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
+            document.getElementById('p-team').innerText = p.team.full_name;
+            document.getElementById('p-height').innerText = p.height || "TBD";
+            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "TBD";
+            document.getElementById('p-conf').innerText = p.team.conference;
+            
+            document.getElementById('result-area').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
