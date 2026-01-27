@@ -3,124 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Scout | 2026 Free Edition</title>
+    <title>NBA Scout | 2026 Elite Directory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
-        .glass { background: #111; border: 1px solid #222; }
-        .neon-blue { color: #00d1ff; }
-        .neon-purple { color: #bc00ff; }
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; transition: background 0.5s ease; }
+        .glass { background: rgba(17, 17, 17, 0.8); border: 1px solid #222; backdrop-filter: blur(10px); }
+        .neon-text { transition: color 0.5s ease; color: #00d1ff; }
+        .stat-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">NBA <span class="neon-blue">SCOUT</span></h1>
-            <p class="text-[10px] tracking-[0.5em] opacity-40 uppercase font-bold text-white">Free Tier Directory Access</p>
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic leading-tight">
+                NBA <span id="brand-color" class="neon-text">SCOUT</span>
+            </h1>
+            <p class="text-[10px] tracking-[0.5em] opacity-40 uppercase font-bold text-white">Advanced Directory Index • 2026</p>
         </header>
 
-        <div class="glass p-4 rounded-3xl mb-12 flex gap-2">
-            <input id="player-search" type="text" placeholder="Search a player (e.g. Curry, LeBron, Wembanyama)" 
+        <div class="glass p-4 rounded-3xl mb-12 flex gap-2 shadow-2xl">
+            <input id="player-search" type="text" placeholder="Search (e.g. Stephen Curry or LeBron)" 
                    class="flex-1 p-5 rounded-2xl bg-black border border-[#333] text-white focus:outline-none focus:border-[#00d1ff] font-bold text-lg">
-            <button onclick="scoutPlayer()" class="bg-[#00d1ff] text-black font-black px-10 py-5 rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition">
+            <button onclick="scoutPlayer()" class="bg-white text-black font-black px-10 py-5 rounded-2xl uppercase tracking-widest hover:scale-105 active:scale-95 transition">
                 SCOUT
             </button>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-blue mb-8 font-bold text-xl italic uppercase">Scanning League Rosters...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold text-xl italic uppercase">Verifying Identity...</div>
 
         <div id="result-area" class="hidden">
-            <div class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff] relative overflow-hidden">
+            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff] shadow-2xl transition-all duration-700">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                     <div>
-                        <span class="text-[10px] uppercase tracking-widest opacity-40 font-bold">Verified Athlete</span>
-                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none mt-2">---</h2>
-                        <p id="player-pos" class="neon-purple text-lg uppercase tracking-[0.3em] mt-4 font-bold">---</p>
+                        <span id="player-status-badge" class="text-[10px] uppercase tracking-widest opacity-60 font-black px-3 py-1 rounded-full bg-white/10">Active Roster</span>
+                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none mt-4">---</h2>
+                        <p id="player-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-80">---</p>
                     </div>
-                    <div class="text-right">
+                    <div class="text-left md:text-right">
                         <p id="player-team-city" class="opacity-40 uppercase text-xs font-bold tracking-widest">---</p>
-                        <p id="player-team-name" class="text-2xl font-black uppercase italic">---</p>
+                        <p id="player-team-name" class="text-3xl font-black uppercase italic leading-none">---</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-10">
-                    <div class="p-6 bg-black rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2">Height</span>
-                        <span id="p-height" class="text-3xl font-black">--</span>
-                    </div>
-                    <div class="p-6 bg-black rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2">Weight</span>
-                        <span id="p-weight" class="text-3xl font-black">--</span>
-                    </div>
-                </div>
-
-                <div class="bg-blue-500/5 p-6 rounded-2xl border-l-2 border-[#00d1ff]">
-                    <h4 class="text-[10px] uppercase tracking-widest opacity-40 mb-2 font-bold">Scouting Report</h4>
-                    <p id="scout-note" class="text-lg italic opacity-90 leading-relaxed">---</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-
-        async function scoutPlayer() {
-            const query = document.getElementById('player-search').value.trim();
-            const loading = document.getElementById('loading');
-            const resultArea = document.getElementById('result-area');
-
-            if (!query) return;
-
-            loading.classList.remove('hidden');
-            resultArea.classList.add('hidden');
-
-            try {
-                // The /players endpoint is available on the free tier
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-
-                if (!res.ok) throw new Error("Connection failed");
-                
-                const json = await res.json();
-                const player = json.data[0];
-
-                if (!player) {
-                    alert("Player not found in active rosters.");
-                    return;
-                }
-
-                // Update UI with "Free Tier" data
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-pos').innerText = player.position || "N/A";
-                document.getElementById('player-team-city').innerText = player.team?.city || "Unknown";
-                document.getElementById('player-team-name').innerText = player.team?.name || "Team";
-                
-                // Height/Weight often comes as null for some players in this API
-                document.getElementById('p-height').innerText = player.height || "N/A";
-                document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "N/A";
-
-                const posMap = {
-                    'G': 'A primary ball-handler with elite perimeter vision.',
-                    'F': 'A versatile wing capable of multi-positional defense.',
-                    'C': 'A paint protector and interior scoring threat.',
-                    'G-F': 'A modern "swingman" with playmaking and shooting range.',
-                    'F-C': 'A mobile big man who can stretch the floor.'
-                };
-                document.getElementById('scout-note').innerText = posMap[player.position] || "A valuable asset to the team's depth and rotation.";
-
-                resultArea.classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                alert("API Error: " + err.message);
-            } finally {
-                loading.classList.add('hidden');
-            }
-        }
-    </script>
-</body>
-</html>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+                    <div class="p-6 stat-card rounded-3xl">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
+                        <span id
