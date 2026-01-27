@@ -54,33 +54,68 @@
     </div>
 
     <script>
-        async function findGoat() {
-            const query = document.getElementById('player-search').value;
-            const loading = document.getElementById('loading');
-            const resultArea = document.getElementById('result-area');
-            
-            if(!query) return;
+     async function findGoat() {
+    const query = document.getElementById('player-search').value;
+    const loading = document.getElementById('loading');
+    const resultArea = document.getElementById('result-area');
+    
+    if(!query) return;
 
-            loading.classList.remove('hidden');
-            resultArea.classList.add('hidden');
+    loading.classList.remove('hidden');
+    resultArea.classList.add('hidden');
 
-            try {
-                // In a production app, you'd fetch from: https://api.balldontlie.io/v1/players?search=${query}
-                // For this demo, we'll simulate the response vibe.
-                setTimeout(() => {
-                    document.getElementById('player-name').innerText = query;
-                    document.getElementById('stat-ppg').innerText = "27.1";
-                    document.getElementById('stat-ast').innerText = "7.5";
-                    document.getElementById('stat-reb').innerText = "7.3";
-                    document.getElementById('ai-summary').innerText = `Based on a career spanning decades, ${query} demonstrates statistical dominance that transcends eras. Their efficiency in high-leverage situations and impact on winning culture makes them a definitive candidate for the greatest to ever play the game.`;
-                    
-                    loading.classList.add('hidden');
-                    resultArea.classList.remove('hidden');
-                }, 800);
-            } catch (err) {
-                alert("The Chef is busy, try again later.");
-            }
+    try {
+        // 1. Search for the player to get their ID
+        const playerRes = await fetch(`https://api.balldontlie.io/v1/players?search=${query}`, {
+            headers: { 'Authorization': 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f' } // Get this from balldontlie.io
+        });
+        const playerData = await playerRes.json();
+
+        if (playerData.data.length === 0) {
+            alert("Player not found. Are they a benchwarmer?");
+            loading.classList.add('hidden');
+            return;
         }
+
+        const player = playerData.data[0];
+
+        // 2. Get their Season Stats (2025)
+        const statsRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
+            headers: { 'Authorization': 'YOUR_FREE_API_KEY' }
+        });
+        const statsData = await statsRes.json();
+        const stats = statsData.data[0] || { pts: "N/A", ast: "N/A", reb: "N/A" };
+
+        // 3. Update the UI
+        document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+        document.getElementById('player-team').innerText = player.team ? player.team.full_name : "Retired / Free Agent";
+        document.getElementById('stat-ppg').innerText = stats.pts;
+        document.getElementById('stat-ast').innerText = stats.ast;
+        document.getElementById('stat-reb').innerText = stats.reb;
+        
+        // 4. Generate the AI Summary (The "Vibe" Logic)
+        generateAISummary(player, stats);
+
+        loading.classList.add('hidden');
+        resultArea.classList.remove('hidden');
+
+    } catch (err) {
+        console.error(err);
+        alert("The stat sheet is jammed. Try again.");
+    }
+}
+
+function generateAISummary(player, stats) {
+    let summary = "";
+    if (stats.pts > 25) {
+        summary = `${player.last_name} is currently a scoring machine, averaging elite numbers that place them in the top tier of active bucket-getters.`;
+    } else if (player.last_name === "Jordan") {
+        summary = "The standard for perfection. 6-0 in the Finals. The gravity of his legacy still defines the modern game.";
+    } else {
+        summary = `${player.first_name} ${player.last_name}'s impact goes beyond the box score, providing the veteran presence and tactical IQ that defines an NBA legend.`;
+    }
+    document.getElementById('ai-summary').innerText = summary;
+}
     </script>
 </body>
 </html>
