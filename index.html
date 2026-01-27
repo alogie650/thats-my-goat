@@ -3,68 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Scout | 2026 Elite Directory</title>
+    <title>NBA Scout | 2026 Smart Directory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; transition: background 0.5s ease; }
-        .glass { background: rgba(17, 17, 17, 0.8); border: 1px solid #222; backdrop-filter: blur(10px); }
-        .neon-text { transition: color 0.5s ease; color: #00d1ff; }
-        .stat-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 17, 17, 0.9); border: 1px solid #222; backdrop-filter: blur(10px); }
+        .neon-text { color: #00d1ff; }
+        .suggestion-item:hover { background: rgba(255, 255, 255, 0.05); color: #00d1ff; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic leading-tight">
-                NBA <span id="brand-color" class="neon-text">SCOUT</span>
-            </h1>
-            <p class="text-[10px] tracking-[0.5em] opacity-40 uppercase font-bold text-white">Advanced Directory Index • 2026</p>
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">NBA <span id="brand-color" class="neon-text">SCOUT</span></h1>
         </header>
 
-        <div class="glass p-4 rounded-3xl mb-12 flex gap-2 shadow-2xl">
-            <input id="player-search" type="text" placeholder="Search (e.g. Stephen Curry or LeBron)" 
-                   class="flex-1 p-5 rounded-2xl bg-black border border-[#333] text-white focus:outline-none focus:border-[#00d1ff] font-bold text-lg">
-            <button onclick="scoutPlayer()" class="bg-white text-black font-black px-10 py-5 rounded-2xl uppercase tracking-widest hover:scale-105 active:scale-95 transition">
-                SCOUT
-            </button>
+        <div class="relative max-w-2xl mx-auto mb-12">
+            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition">
+                <input id="player-search" type="text" autocomplete="off"
+                       placeholder="Type at least 2 letters..." 
+                       class="flex-1 p-4 bg-transparent text-white outline-none font-bold text-lg"
+                       oninput="handleInput(this.value)">
+                <div id="search-indicator" class="hidden pr-4"><div class="w-4 h-4 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div></div>
+            </div>
+
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-50 shadow-2xl border border-white/10">
+                </div>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold text-xl italic uppercase">Verifying Identity...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold italic">RETRIEVING PROFILE...</div>
 
         <div id="result-area" class="hidden">
-            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff] shadow-2xl transition-all duration-700">
+            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff]">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                     <div>
-                        <span id="player-status-badge" class="text-[10px] uppercase tracking-widest opacity-60 font-black px-3 py-1 rounded-full bg-white/10">Active Roster</span>
-                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none mt-4">---</h2>
+                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
                         <p id="player-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-80">---</p>
                     </div>
                     <div class="text-left md:text-right">
-                        <p id="player-team-city" class="opacity-40 uppercase text-xs font-bold tracking-widest">---</p>
                         <p id="player-team-name" class="text-3xl font-black uppercase italic leading-none">---</p>
+                        <p id="player-team-city" class="opacity-40 uppercase text-[10px] font-bold tracking-widest mt-2">---</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
-                    <div class="p-6 stat-card rounded-3xl">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Height</span>
                         <span id="p-height" class="text-3xl font-black">--</span>
                     </div>
-                    <div class="p-6 stat-card rounded-3xl">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Weight</span>
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Weight</span>
                         <span id="p-weight" class="text-3xl font-black">--</span>
                     </div>
-                    <div class="p-6 stat-card rounded-3xl col-span-2 md:col-span-1">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Conference</span>
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5 col-span-2 md:col-span-1">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Division</span>
                         <span id="p-conf" class="text-3xl font-black uppercase">--</span>
                     </div>
-                </div>
-
-                <div class="bg-white/5 p-8 rounded-3xl border-l-4 border-white/20">
-                    <h4 class="text-[10px] uppercase tracking-widest opacity-40 mb-3 font-bold">Scouting Analysis</h4>
-                    <p id="scout-note" class="text-xl italic opacity-90 leading-relaxed font-medium">---</p>
                 </div>
             </div>
         </div>
@@ -72,85 +68,90 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+        let debounceTimer;
 
-        async function scoutPlayer() {
-            const rawInput = document.getElementById('player-search').value.trim();
-            if (!rawInput) return;
+        // 1. Handle typing with debounce to save API credits
+        function handleInput(val) {
+            clearTimeout(debounceTimer);
+            const dropdown = document.getElementById('suggestions');
+            
+            if (val.length < 2) {
+                dropdown.classList.add('hidden');
+                return;
+            }
 
-            const loading = document.getElementById('loading');
-            const resultArea = document.getElementById('result-area');
-            const searchTerms = rawInput.toLowerCase().split(' ');
+            debounceTimer = setTimeout(() => {
+                fetchSuggestions(val);
+            }, 400); // Wait 400ms after user stops typing
+        }
 
-            loading.classList.remove('hidden');
-            resultArea.classList.add('hidden');
+        // 2. Fetch players from API
+        async function fetchSuggestions(query) {
+            const indicator = document.getElementById('search-indicator');
+            indicator.classList.remove('hidden');
 
             try {
-                // Search for the primary term
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(searchTerms[0])}`, {
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
                     headers: { 'Authorization': API_KEY }
                 });
-
-                if (!res.ok) throw new Error("API Connection Failed");
-                
                 const json = await res.json();
-                const players = json.data;
-
-                if (!players || players.length === 0) {
-                    alert("Player not found in active directory.");
-                    return;
-                }
-
-                // --- SMART MATCHING LOGIC ---
-                let player = players[0]; // Default
-                
-                if (searchTerms.length > 1) {
-                    // Look for a player that matches both first and last name keywords
-                    const bestMatch = players.find(p => 
-                        (p.first_name.toLowerCase().includes(searchTerms[0]) || p.last_name.toLowerCase().includes(searchTerms[0])) &&
-                        (p.first_name.toLowerCase().includes(searchTerms[1]) || p.last_name.toLowerCase().includes(searchTerms[1]))
-                    );
-                    if (bestMatch) player = bestMatch;
-                } else {
-                    // If searching just "Curry", try to prioritize "Stephen"
-                    const legendMatch = players.find(p => p.first_name === "Stephen" || p.first_name === "LeBron");
-                    if (legendMatch) player = legendMatch;
-                }
-
-                // Update Text Elements
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-pos').innerText = player.position || "Prospect";
-                document.getElementById('player-team-city').innerText = player.team?.city || "NBA";
-                document.getElementById('player-team-name').innerText = player.team?.name || "Roster";
-                document.getElementById('p-height').innerText = player.height || "TBD";
-                document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "TBD";
-                document.getElementById('p-conf').innerText = player.team?.conference || "NBA";
-
-                // Scouting Notes
-                const notes = {
-                    'G': "Elite floor spacing and perimeter threat. Capable of generating high-volume offense.",
-                    'F': "Versatile wing defender with the length to disrupt passing lanes and finish at the rim.",
-                    'C': "Dominant interior presence. Anchors the defense and controls the glass.",
-                };
-                document.getElementById('scout-note').innerText = notes[player.position?.split('-')[0]] || "A key rotational piece with high-IQ positioning.";
-
-                // Dynamic UI Coloring
-                const team = player.team?.abbreviation;
-                const colors = {
-                    'GSW': '#ffc72c', 'LAL': '#552583', 'BOS': '#007a33', 'PHX': '#e56020', 
-                    'DAL': '#00538c', 'CHI': '#ce1141', 'MIA': '#98002e', 'MIL': '#00471b'
-                };
-                const themeColor = colors[team] || '#00d1ff';
-                document.getElementById('brand-color').style.color = themeColor;
-                document.getElementById('main-card').style.borderColor = themeColor;
-
-                resultArea.classList.remove('hidden');
-
+                renderSuggestions(json.data || []);
             } catch (err) {
-                console.error(err);
-                alert("Search Error: Check connection or Key.");
+                console.error("API Error:", err);
             } finally {
-                loading.classList.add('hidden');
+                indicator.classList.add('hidden');
             }
+        }
+
+        // 3. Render the list
+        function renderSuggestions(players) {
+            const dropdown = document.getElementById('suggestions');
+            dropdown.innerHTML = '';
+            
+            if (players.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            // Limit to 5 as requested
+            const list = players.slice(0, 5);
+            
+            list.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 last:border-0 transition flex justify-between items-center';
+                div.innerHTML = `
+                    <span>${player.first_name} ${player.last_name}</span>
+                    <span class="text-[10px] opacity-30 uppercase">${player.team.abbreviation}</span>
+                `;
+                div.onclick = () => selectPlayer(player);
+                dropdown.appendChild(div);
+            });
+
+            dropdown.classList.remove('hidden');
+        }
+
+        // 4. Select and show data
+        function selectPlayer(player) {
+            const dropdown = document.getElementById('suggestions');
+            const searchInput = document.getElementById('player-search');
+            
+            dropdown.classList.add('hidden');
+            searchInput.value = `${player.first_name} ${player.last_name}`;
+            
+            document.getElementById('result-area').classList.remove('hidden');
+            document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+            document.getElementById('player-pos').innerText = player.position || "N/A";
+            document.getElementById('player-team-name').innerText = player.team.full_name;
+            document.getElementById('player-team-city').innerText = player.team.city;
+            document.getElementById('p-height').innerText = player.height || "TBD";
+            document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "TBD";
+            document.getElementById('p-conf').innerText = player.team.conference;
+
+            // Change color based on team (Simple version)
+            const teamColors = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33' };
+            const color = teamColors[player.team.abbreviation] || '#00d1ff';
+            document.getElementById('brand-color').style.color = color;
+            document.getElementById('main-card').style.borderColor = color;
         }
     </script>
 </body>
