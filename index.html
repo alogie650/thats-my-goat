@@ -3,144 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's my GOAT | Night Mode</title>
+    <title>That's my GOAT | 2026 Night Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
-        .glass { background: #1a1a1a; border: 1px solid #333; transition: all 0.3s ease; }
-        .glass:hover { border-color: #00ff85; box-shadow: 0 0 20px rgba(0, 255, 133, 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { 
+            background-color: #0a0a0a; 
+            color: #e5e5e5; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+        }
+
+        .glass { 
+            background: #151515; 
+            border: 1px solid #222; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        .glass:hover { 
+            border-color: #00ff85; 
+            box-shadow: 0 0 30px rgba(0, 255, 133, 0.05); 
+        }
+
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        .btn-glow:hover { box-shadow: 0 0 15px #00ff85; }
-        input::placeholder { color: #555; }
+        .bg-neon-green { background-color: #00ff85; }
+        
+        .btn-glow {
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        
+        .btn-glow:hover { 
+            box-shadow: 0 0 20px rgba(0, 255, 133, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Custom Scrollbar for Suggestions */
+        #suggestions::-webkit-scrollbar { width: 6px; }
+        #suggestions::-webkit-scrollbar-track { background: #111; }
+        #suggestions::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        #suggestions::-webkit-scrollbar-thumb:hover { background: #00ff85; }
+
+        .suggestion-item:hover {
+            background-color: #00ff85;
+            color: #000;
+        }
+
+        input::placeholder { color: #444; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-12">
 
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-12">
-            <h1 class="text-6xl font-black mb-2 uppercase tracking-tighter italic">
+        <header class="text-center mb-16">
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic italic">
                 THAT'S MY <span class="neon-yellow">GOAT</span>
             </h1>
-            <p class="text-sm tracking-[0.3em] opacity-40 uppercase">Settle the Debate • Live 2026 Data</p>
+            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold">The Definitive Legacy Tracker • 2026 Season</p>
         </header>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-12">
-            <input id="player-search" type="text" placeholder="Search Legend (e.g. Victor Wembanyama)" 
-                   class="flex-1 p-5 rounded-2xl bg-[#111] border border-[#333] text-white focus:outline-none focus:border-[#00ff85] transition text-lg">
-            <button onclick="findGoat()" class="btn-glow bg-[#00ff85] text-black font-bold px-10 py-5 rounded-2xl transition-all duration-300">
-                FETCH STATS
-            </button>
-        </div>
-
-        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 uppercase text-xs tracking-widest">
-            Scanning Basketball Archives...
-        </div>
-
-        <div id="result-area" class="hidden space-y-6">
-            <div class="glass p-8 md:p-12 rounded-[2rem]">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-                    <div>
-                        <h2 id="player-name" class="text-5xl font-black uppercase italic leading-none">---</h2>
-                        <p id="player-team" class="neon-green text-sm uppercase tracking-widest mt-2 font-bold">---</p>
-                    </div>
-                    <div class="px-6 py-2 rounded-full border border-[#ffeb3b]/30 bg-[#ffeb3b]/10">
-                        <span id="stat-rank" class="neon-yellow text-sm font-black uppercase tracking-tighter">ELITE TIER</span>
-                    </div>
+        <div class="relative mb-16">
+            <div class="flex flex-col md:flex-row gap-4 relative">
+                <div class="relative flex-1">
+                    <input id="player-search" type="text" autocomplete="off" 
+                           placeholder="Type a name (e.g. Stephen Curry)" 
+                           class="w-full p-6 rounded-2xl bg-[#111] border-2 border-[#222] text-white focus:outline-none focus:border-[#00ff85] transition-all text-xl font-bold">
+                    
+                    <div id="suggestions" class="hidden absolute z-50 w-full mt-2 bg-[#1a1a1a] border-2 border-[#333] rounded-2xl overflow-hidden shadow-2xl max-h-64 overflow-y-auto">
+                        </div>
                 </div>
-
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-                    <div class="p-6 bg-black rounded-2xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">Season PPG</span>
-                        <span id="stat-ppg" class="text-3xl font-mono font-bold">--</span>
-                    </div>
-                    <div class="p-6 bg-black rounded-2xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">Season REB</span>
-                        <span id="stat-reb" class="text-3xl font-mono font-bold">--</span>
-                    </div>
-                    <div class="p-6 bg-black rounded-2xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">Season AST</span>
-                        <span id="stat-ast" class="text-3xl font-mono font-bold">--</span>
-                    </div>
-                    <div class="p-6 bg-black rounded-2xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">Career Status</span>
-                        <span id="career-badge" class="text-xl font-bold neon-green uppercase">ACTIVE</span>
-                    </div>
-                </div>
-
-                <div class="bg-black/50 p-6 rounded-2xl border-l-4 border-[#00ff85]">
-                    <h3 class="text-[10px] font-black uppercase mb-2 opacity-40 tracking-widest">AI Legacy Verdict</h3>
-                    <p id="ai-summary" class="text-lg leading-relaxed italic opacity-90">Enter a name to analyze greatness...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-
-        async function findGoat() {
-            const query = document.getElementById('player-search').value;
-            const loading = document.getElementById('loading');
-            const resultArea = document.getElementById('result-area');
-            
-            if(!query) return;
-            loading.classList.remove('hidden');
-            resultArea.classList.add('hidden');
-
-            try {
-                const playerRes = await fetch(`https://api.balldontlie.io/v1/players?search=${query}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-                const playerData = await playerRes.json();
-
-                if (!playerData.data || playerData.data.length === 0) {
-                    alert("Player not found.");
-                    loading.classList.add('hidden');
-                    return;
-                }
-
-                const player = playerData.data[0];
-                const statsRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-                const statsData = await statsRes.json();
-                const s = statsData.data[0] || { pts: 0, ast: 0, reb: 0 };
-
-                // Update UI
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-team').innerText = player.team ? player.team.full_name : "LEGEND";
-                document.getElementById('stat-ppg').innerText = s.pts || "0.0";
-                document.getElementById('stat-ast').innerText = s.ast || "0.0";
-                document.getElementById('stat-reb').innerText = s.reb || "0.0";
-
-                // AI Reasoning Logic
-                let summary = "";
-                let rank = "Tier 1 Talent";
-                
-                if(player.last_name === "James") {
-                    summary = "The King. Surpassed 42,000 career points and remains the most versatile force in NBA history. Longevity GOAT.";
-                    rank = "#1 ALL TIME PTS";
-                } else if (player.last_name === "Curry") {
-                    summary = "Greatest shooter of all time. Currently averaging 27.3 PPG in his 17th season. Point God efficiency.";
-                    rank = "#1 ALL TIME 3PM";
-                } else if (s.pts > 30) {
-                    summary = `A modern scoring juggernaut. ${player.last_name} is currently playing at an MVP-caliber level.`;
-                    rank = "LEAGUE LEADER";
-                } else {
-                    summary = `A certified bucket. ${player.first_name} ${player.last_name} continues to cement their place in the history books with elite consistency.`;
-                }
-
-                document.getElementById('ai-summary').innerText = summary;
-                document.getElementById('stat-rank').innerText = rank;
-
-                loading.classList.add('hidden');
-                resultArea.classList.remove('hidden');
-            } catch (err) {
-                loading.classList.add('hidden');
-                alert("The stats server is double-teamed. Try again!");
-            }
-        }
-    </script>
-</body>
-</html>
+                <button onclick="findGoat()" class="btn-glow bg-neon-green text-black font-black px-12 py-6 rounded-2xl uppercase tracking-widest text-lg">
+                    Analyze
+                </button
