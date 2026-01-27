@@ -3,172 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Scout | 2026 Optimized</title>
+    <title>That's My GOAT | NBA Scout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(17, 17, 17, 0.95); border: 1px solid #222; }
-        .neon-blue { color: #00d1ff; }
-        .suggestion-item:hover { background: #1a1a1a; color: #00d1ff; }
-    </style>
-</head>
-<body class="min-h-screen p-6 md:p-12">
-
-    <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic leading-tight">NBA <span id="brand-color" class="neon-blue">SCOUT</span></h1>
-            <div id="api-indicator" class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-30 border border-white/10 px-4 py-1 rounded-full inline-block">System: Online</div>
-        </header>
-
-        <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition">
-                <input id="player-search" type="text" autocomplete="off"
-                       placeholder="Search (e.g. Brandin Podziemski)" 
-                       class="flex-1 p-4 bg-transparent text-white outline-none font-bold text-lg"
-                       oninput="debouncedSearch(this.value)"
-                       onkeydown="if(event.key === 'Enter') performGlobalSearch()">
-                
-                <div id="spinner" class="hidden pr-2"><div class="w-5 h-5 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div></div>
-                <button onclick="performGlobalSearch()" class="bg-white text-black font-black px-6 py-4 rounded-xl hover:bg-[#00d1ff] transition uppercase text-xs">Search</button>
-            </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-50 shadow-2xl border border-white/10"></div>
-        </div>
-
-        <div id="loading" class="hidden text-center animate-pulse neon-blue mb-8 font-bold text-lg italic">SYNCHRONIZING WITH LEAGUE DATABASE...</div>
-
-        <div id="result-area" class="hidden">
-            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff]">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-                    <div>
-                        <h2 id="p-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
-                        <p id="p-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-80">---</p>
-                    </div>
-                    <div class="text-left md:text-right">
-                        <p id="p-team" class="text-3xl font-black uppercase italic leading-none">---</p>
-                        <p id="p-city" class="opacity-40 uppercase text-[10px] font-bold tracking-widest mt-2">---</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Height</span><span id="p-height" class="text-3xl font-black">--</span></div>
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Weight</span><span id="p-weight" class="text-3xl font-black">--</span></div>
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5 col-span-2 md:col-span-1"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Conference</span><span id="p-conf" class="text-3xl font-black uppercase">--</span></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        let debounceTimer;
-        let isFetching = false;
-
-        function updateIndicator(msg, color) {
-            const el = document.getElementById('api-indicator');
-            el.innerText = `System: ${msg}`;
-            el.style.color = color;
+        /* Authentic Typewriter Google Font */
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+        
+        body { 
+            background-color: #050505; 
+            color: #ffffff; 
+            font-family: 'Special Elite', typewriter, serif; 
+            overflow-x: hidden; 
         }
-
-        function debouncedSearch(val) {
-            clearTimeout(debounceTimer);
-            if (val.length < 2) {
-                document.getElementById('suggestions').classList.add('hidden');
-                return;
-            }
-            // Increased to 600ms to be extremely safe with the API rate limit
-            debounceTimer = setTimeout(() => fetchPlayers(val, true), 600);
-        }
-
-        async function fetchPlayers(query, isDropdown = false) {
-            if (isFetching) return;
-            isFetching = true;
-            
-            const spinner = document.getElementById('spinner');
-            spinner.classList.remove('hidden');
-
-            try {
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-
-                if (res.status === 429) {
-                    updateIndicator("Rate Limited (Slow Down)", "#ff4444");
-                    return;
-                }
-
-                if (!res.ok) throw new Error(`Error: ${res.status}`);
-                
-                const json = await res.json();
-                const players = json.data || [];
-                
-                updateIndicator("Online", "#00d1ff");
-
-                if (isDropdown) {
-                    renderSuggestions(players);
-                } else {
-                    return players;
-                }
-            } catch (err) {
-                console.error(err);
-                updateIndicator("Search Failed", "#ff4444");
-            } finally {
-                isFetching = false;
-                spinner.classList.add('hidden');
-            }
-        }
-
-        function renderSuggestions(players) {
-            const dropdown = document.getElementById('suggestions');
-            dropdown.innerHTML = '';
-            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-
-            players.slice(0, 5).forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 last:border-0 flex justify-between';
-                div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span class="opacity-30 text-xs">${p.team.abbreviation}</span>`;
-                div.onclick = () => selectPlayer(p);
-                dropdown.appendChild(div);
-            });
-            dropdown.classList.remove('hidden');
-        }
-
-        async function performGlobalSearch() {
-            const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-
-            document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            
-            const results = await fetchPlayers(query, false);
-            if (results && results.length > 0) {
-                // If the user typed "Brandin Podziemski", look for the best full match
-                const match = results.find(p => 
-                    (p.first_name + " " + p.last_name).toLowerCase().includes(query.toLowerCase())
-                ) || results[0];
-                selectPlayer(match);
-            } else {
-                updateIndicator("No Player Found", "#ff4444");
-            }
-            document.getElementById('loading').classList.add('hidden');
-        }
-
-        function selectPlayer(p) {
-            document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
-            document.getElementById('result-area').classList.remove('hidden');
-            
-            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
-            document.getElementById('p-pos').innerText = p.position || "Prospect";
-            document.getElementById('p-team').innerText = p.team.full_name;
-            document.getElementById('p-city').innerText = p.team.city;
-            document.getElementById('p-height').innerText = p.height || "TBD";
-            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} lbs` : "TBD";
-            document.getElementById('p-conf').innerText = p.team.conference;
-
-            const theme = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'PHX': '#e56020' }[p.team.abbreviation] || '#00d1ff';
-            document.getElementById('brand-color').style.color = theme;
-            document.getElementById('main-card').style.borderColor = theme;
-        }
-    </script>
-</body>
-</html>
+        
+        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid #222; }
+        .neon-green { color: #39FF14; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+        .border-neon { border-color: #39FF14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); }
+        .suggestion-item:hover { background: #1a1a1a; color: #39FF14; }
+        input::placeholder { color: #555; font-style: italic; }
+        
+        /* Subtle scanline effect for that retro typewriter/computer feel */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
