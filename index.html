@@ -208,4 +208,17 @@
             // Apply Theme
             document.querySelectorAll('.dynamic-neon').forEach(el => el.style.color = themeColor);
             document.getElementById('player-card').style.borderColor = themeColor;
-            document.getElementById('search-btn').style.
+            document.getElementById('search-btn').style.backgroundColor = themeColor;
+            document.getElementById('fake-cursor').style.backgroundColor = themeColor;
+
+            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
+            document.getElementById('p-team').innerText = p.team.full_name;
+            document.getElementById('p-height').innerText = p.height || "N/A";
+            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "N/A";
+            document.getElementById('p-conf').innerText = p.team.conference;
+            
+            document.getElementById('result-area').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
