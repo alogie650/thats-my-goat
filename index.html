@@ -7,50 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
-        body { 
-            background-color: #0a0a0a; 
-            color: #e5e5e5; 
-            font-family: 'Inter', sans-serif; 
-            overflow-x: hidden;
-        }
-
-        .glass { 
-            background: #151515; 
-            border: 1px solid #222; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-
-        .glass:hover { 
-            border-color: #00ff85; 
-            box-shadow: 0 0 30px rgba(0, 255, 133, 0.05); 
-        }
-
+        body { background-color: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass { background: #151515; border: 1px solid #222; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass:hover { border-color: #00ff85; box-shadow: 0 0 30px rgba(0, 255, 133, 0.05); }
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        .bg-neon-green { background-color: #00ff85; }
-        
-        .btn-glow {
-            transition: all 0.3s ease;
-            text-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        
-        .btn-glow:hover { 
-            box-shadow: 0 0 20px rgba(0, 255, 133, 0.4);
-            transform: translateY(-2px);
-        }
-
-        /* Custom Scrollbar for Suggestions */
-        #suggestions::-webkit-scrollbar { width: 6px; }
-        #suggestions::-webkit-scrollbar-track { background: #111; }
-        #suggestions::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        #suggestions::-webkit-scrollbar-thumb:hover { background: #00ff85; }
-
-        .suggestion-item:hover {
-            background-color: #00ff85;
-            color: #000;
-        }
-
+        .btn-glow { transition: all 0.3s ease; }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(0, 255, 133, 0.4); transform: translateY(-2px); }
+        #suggestions { max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 #111; }
+        .suggestion-item:hover { background-color: #00ff85; color: #000; }
         input::placeholder { color: #444; }
     </style>
 </head>
@@ -58,22 +23,178 @@
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-16">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic italic">
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">
                 THAT'S MY <span class="neon-yellow">GOAT</span>
             </h1>
-            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold">The Definitive Legacy Tracker • 2026 Season</p>
+            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold text-white">Live Legacy Tracker • 2026 Season</p>
         </header>
 
         <div class="relative mb-16">
             <div class="flex flex-col md:flex-row gap-4 relative">
                 <div class="relative flex-1">
                     <input id="player-search" type="text" autocomplete="off" 
-                           placeholder="Type a name (e.g. Stephen Curry)" 
+                           placeholder="Search (e.g. LeBron James)" 
                            class="w-full p-6 rounded-2xl bg-[#111] border-2 border-[#222] text-white focus:outline-none focus:border-[#00ff85] transition-all text-xl font-bold">
-                    
-                    <div id="suggestions" class="hidden absolute z-50 w-full mt-2 bg-[#1a1a1a] border-2 border-[#333] rounded-2xl overflow-hidden shadow-2xl max-h-64 overflow-y-auto">
-                        </div>
+                    <div id="suggestions" class="hidden absolute z-50 w-full mt-2 bg-[#1a1a1a] border-2 border-[#333] rounded-2xl overflow-hidden shadow-2xl"></div>
                 </div>
-                <button onclick="findGoat()" class="btn-glow bg-neon-green text-black font-black px-12 py-6 rounded-2xl uppercase tracking-widest text-lg">
+                <button onclick="findGoat()" class="btn-glow bg-[#00ff85] text-black font-black px-12 py-6 rounded-2xl uppercase tracking-widest text-lg">
                     Analyze
-                </button
+                </button>
+            </div>
+        </div>
+
+        <div id="loading" class="hidden text-center animate-pulse neon-green mb-12 uppercase text-sm tracking-[0.2em] font-bold">
+            Consulting Archives...
+        </div>
+
+        <div id="result-area" class="hidden space-y-8">
+            <div class="glass p-8 md:p-12 rounded-[2.5rem]">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+                    <div>
+                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic leading-none tracking-tighter">---</h2>
+                        <p id="player-team" class="neon-green text-lg uppercase tracking-[0.2em] mt-4 font-bold">---</p>
+                    </div>
+                    <div class="px-8 py-3 rounded-full border-2 border-neon-yellow/30 bg-neon-yellow/5">
+                        <span id="stat-rank" class="neon-yellow text-sm font-black uppercase tracking-widest">RANK: ---</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div class="p-8 bg-black/40 rounded-3xl border border-white/5 text-center">
+                        <span class="block text-[10px] opacity-40 uppercase font-black tracking-widest mb-2">25-26 PPG</span>
+                        <span id="stat-ppg" class="text-4xl font-black neon-green">--</span>
+                    </div>
+                    <div class="p-8 bg-black/40 rounded-3xl border border-white/5 text-center">
+                        <span class="block text-[10px] opacity-40 uppercase font-black tracking-widest mb-2">25-26 REB</span>
+                        <span id="stat-reb" class="text-4xl font-black">--</span>
+                    </div>
+                    <div class="p-8 bg-black/40 rounded-3xl border border-white/5 text-center">
+                        <span class="block text-[10px] opacity-40 uppercase font-black tracking-widest mb-2">25-26 AST</span>
+                        <span id="stat-ast" class="text-4xl font-black">--</span>
+                    </div>
+                    <div class="p-8 bg-black/40 rounded-3xl border border-white/5 text-center">
+                        <span class="block text-[10px] opacity-40 uppercase font-black tracking-widest mb-2">DB INDEX</span>
+                        <span id="stat-id" class="text-2xl font-black opacity-30">--</span>
+                    </div>
+                </div>
+
+                <div class="bg-black/60 p-8 rounded-3xl border-l-8 border-neon-green">
+                    <h3 class="text-xs font-black uppercase mb-4 opacity-40 tracking-[0.3em]">AI Verdict</h3>
+                    <p id="ai-summary" class="text-xl md:text-2xl leading-relaxed italic opacity-95 text-white">---</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+        const searchInput = document.getElementById('player-search');
+        const suggestionsBox = document.getElementById('suggestions');
+        let debounceTimer;
+
+        // Auto-suggestions logic
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+            debounceTimer = setTimeout(() => fetchSuggestions(query), 300);
+        });
+
+        async function fetchSuggestions(query) {
+            try {
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+                const result = await res.json();
+                if (result.data && result.data.length > 0) {
+                    displaySuggestions(result.data);
+                }
+            } catch (err) { console.error("Suggestions failed", err); }
+        }
+
+        function displaySuggestions(players) {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('hidden');
+            players.slice(0, 5).forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item p-5 cursor-pointer border-b border-[#222] font-bold flex justify-between';
+                div.innerHTML = `<span>${player.first_name} ${player.last_name}</span><span class="opacity-40 uppercase text-xs">${player.team?.abbreviation || 'LEG'}</span>`;
+                div.onclick = () => {
+                    searchInput.value = `${player.first_name} ${player.last_name}`;
+                    suggestionsBox.classList.add('hidden');
+                    findGoat();
+                };
+                suggestionsBox.appendChild(div);
+            });
+        }
+
+        async function findGoat() {
+            const query = searchInput.value.trim();
+            const loading = document.getElementById('loading');
+            const resultArea = document.getElementById('result-area');
+            
+            if(!query) return;
+            loading.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+            suggestionsBox.classList.add('hidden');
+
+            try {
+                // Fetch Player ID
+                const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+                const pData = await pRes.json();
+                const player = pData.data[0];
+
+                if(!player) {
+                    alert("No player found!");
+                    loading.classList.add('hidden');
+                    return;
+                }
+
+                // Fetch Season Stats (2025 Season)
+                const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+                const sData = await sRes.json();
+                const s = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
+
+                // Update UI
+                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+                document.getElementById('player-team').innerText = player.team?.full_name || "Free Agent / Legend";
+                document.getElementById('stat-ppg').innerText = s.pts || "0.0";
+                document.getElementById('stat-reb').innerText = s.reb || "0.0";
+                document.getElementById('stat-ast').innerText = s.ast || "0.0";
+                document.getElementById('stat-id').innerText = `ID:${player.id}`;
+                
+                // Logic-based Verdict
+                let verdict = "";
+                let rankLabel = "TIER 1";
+                if (player.last_name === "James") {
+                    verdict = "The longevity king. Statistically the most complete player in history. His 2026 impact remains elite.";
+                    rankLabel = "#1 SCORER";
+                } else if (player.last_name === "Curry") {
+                    verdict = "The shooting standard. Gravity defined. He is still the most dangerous person on the court without the ball.";
+                    rankLabel = "GOAT SHOOTER";
+                } else {
+                    verdict = `A dominant force in the modern era. ${player.last_name} possesses the metrics required for serious GOAT consideration.`;
+                    rankLabel = s.pts > 20 ? "MVP TIER" : "ELITE VET";
+                }
+
+                document.getElementById('ai-summary').innerText = verdict;
+                document.getElementById('stat-rank').innerText = rankLabel;
+                loading.classList.add('hidden');
+                resultArea.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                loading.classList.add('hidden');
+                alert("API limit reached or network error. Try again in 60s!");
+            }
+        }
+    </script>
+</body>
+</html>
