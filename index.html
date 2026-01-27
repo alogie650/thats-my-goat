@@ -3,49 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT | Solid Terminal</title>
+    <title>That's My GOAT | Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+        /* Modern Terminal Pixel Font */
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
         body { 
-            background-color: #000000; /* Solid Black */
-            color: #ffffff; /* Solid White */
-            font-family: 'Special Elite', typewriter, serif; 
-            overflow-x: hidden;
+            background-color: #000000; 
+            color: #ffffff; 
+            font-family: 'VT323', monospace; 
+            font-size: 20px;
             margin: 0;
+            text-transform: uppercase;
         }
         
-        /* Clean Containers */
         .solid-box { 
-            background: #0a0a0a; 
-            border: 2px solid #222; 
+            background: #000; 
+            border: 2px solid #333; 
             position: relative; 
         }
 
         .neon-green { 
             color: #39FF14; 
-            /* Text-shadow kept minimal for sharpness */
-            text-shadow: 0 0 5px rgba(57, 255, 20, 0.3); 
+            text-shadow: 2px 2px #000, 0 0 8px rgba(57, 255, 20, 0.4);
         }
         
-        /* THE CURSOR LOGIC */
-        .terminal-container { position: relative; display: flex; align-items: center; width: 100%; }
-        
+        /* THE CURSOR */
         #player-search {
             caret-color: transparent; 
             z-index: 2;
+            letter-spacing: 1px;
         }
 
         #fake-cursor {
             position: absolute;
             width: 14px;
-            height: 26px;
+            height: 24px;
             background-color: #39FF14;
             animation: blink 0.8s step-end infinite;
             pointer-events: none;
             z-index: 1;
-            display: inline-block;
         }
 
         @keyframes blink {
@@ -53,68 +51,95 @@
             50% { opacity: 0; }
         }
 
-        /* Suggestion Hover */
-        .suggestion-item { transition: none; border-bottom: 1px solid #111; }
-        .suggestion-item:hover { background: #39FF14; color: #000; }
+        /* RETRO SQUARE LOADER */
+        .loader-sq {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #111;
+            position: relative;
+        }
+        .loader-dot {
+            width: 6px;
+            height: 6px;
+            background: #39FF14;
+            position: absolute;
+            animation: squareMove 1s infinite linear;
+        }
+
+        @keyframes squareMove {
+            0% { top: 0; left: 0; }
+            25% { top: 0; left: 14px; }
+            50% { top: 14px; left: 14px; }
+            75% { top: 14px; left: 0; }
+            100% { top: 0; left: 0; }
+        }
+
+        .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
+        
+        /* Remove italics from header as requested */
+        h1 { font-style: normal !important; letter-spacing: -2px; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12" onload="updateCursor()">
 
-    <div class="max-w-4xl mx-auto relative z-10">
+    <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-5xl md:text-7xl font-black mb-2 uppercase italic">
+            <h1 class="text-6xl md:text-8xl font-normal mb-2 uppercase tracking-tighter">
                 THAT'S MY <span class="neon-green">GOAT</span>
             </h1>
-            <div class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-60 border border-white/20 px-4 py-1 inline-block">
-                SYS_STATUS: READY
+            <div class="text-sm tracking-[0.4em] opacity-60 border border-white/20 px-4 py-1 inline-block">
+                ROOT@NBA_ARCHIVE:~# READY
             </div>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="solid-box p-2 rounded-none flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
-                <div class="terminal-container flex-1">
+            <div class="solid-box p-1 flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
+                <div class="relative flex-1 flex items-center">
                     <input id="player-search" type="text" autocomplete="off"
-                           placeholder="" 
-                           class="w-full p-4 bg-transparent text-white outline-none font-bold text-lg uppercase"
+                           class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
                            oninput="handleInput(this)"
                            onkeydown="if(event.key === 'Enter') performGlobalSearch()"
-                           onfocus="clearSearch(this)">
+                           onfocus="this.value=''; updateCursor()">
                     <div id="fake-cursor"></div>
                 </div>
                 
-                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-black px-8 py-4 rounded-none hover:bg-white transition-colors uppercase text-sm tracking-widest">
-                    EXECUTE
+                <div id="loader-box" class="hidden pr-4">
+                    <div class="loader-sq"><div class="loader-dot"></div></div>
+                </div>
+
+                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-8 py-4 hover:bg-white transition-colors text-xl">
+                    EXEC
                 </button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 border-t-0"></div>
         </div>
 
         <div id="result-area" class="hidden">
             <div class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
-                <div class="mb-8">
-                    <h2 id="p-name" class="text-4xl md:text-6xl font-bold uppercase tracking-tight neon-green">---</h2>
-                    <p id="p-team" class="text-2xl font-bold uppercase italic mt-2 text-white opacity-90">---</p>
+                <div class="mb-10">
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold neon-green">---</h2>
+                    <p id="p-team" class="text-3xl font-bold mt-2 text-white">---</p>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-8 border-t-2 border-white/10 pt-8">
                     <div>
-                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Height</span>
-                        <span id="p-height" class="text-3xl font-bold">--</span>
+                        <span class="block text-lg opacity-50 mb-1">DATA:HEIGHT</span>
+                        <span id="p-height" class="text-4xl font-bold">--</span>
                     </div>
                     <div>
-                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Weight</span>
-                        <span id="p-weight" class="text-3xl font-bold">--</span>
+                        <span class="block text-lg opacity-50 mb-1">DATA:WEIGHT</span>
+                        <span id="p-weight" class="text-4xl font-bold">--</span>
                     </div>
                     <div class="col-span-2">
-                        <span class="block text-[11px] opacity-50 uppercase mb-1 tracking-widest">Conference</span>
-                        <span id="p-conf" class="text-3xl font-bold uppercase">--</span>
+                        <span class="block text-lg opacity-50 mb-1">DATA:CONFERENCE</span>
+                        <span id="p-conf" class="text-4xl font-bold">--</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'Special Elite'; font-size: 18px; font-weight: bold; text-transform: uppercase;"></span>
+    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 24px; text-transform: uppercase;"></span>
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
@@ -125,22 +150,22 @@
             debouncedSearch(el.value);
         }
 
-        function clearSearch(el) {
-            el.value = '';
-            updateCursor();
-        }
-
         function updateCursor() {
             const input = document.getElementById('player-search');
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
             measurer.innerText = input.value || "";
+            // The 16 accounts for padding in the input
             cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
+            if (val.length < 2) { 
+                document.getElementById('suggestions').classList.add('hidden'); 
+                return; 
+            }
+            document.getElementById('loader-box').classList.remove('hidden');
             debounceTimer = setTimeout(() => fetchPlayers(val, true), 600);
         }
 
@@ -153,6 +178,7 @@
                 if (isDropdown) renderSuggestions(json.data || []);
                 return json.data || [];
             } catch (err) { console.error(err); }
+            finally { document.getElementById('loader-box').classList.add('hidden'); }
         }
 
         function renderSuggestions(players) {
@@ -161,8 +187,8 @@
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 cursor-pointer font-bold uppercase';
-                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 text-xs ml-2">${p.team.abbreviation}</span>`;
+                div.className = 'suggestion-item p-4 border-b border-white/5';
+                div.innerHTML = `${p.first_name} ${p.last_name} [${p.team.abbreviation}]`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -172,21 +198,21 @@
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
             if (!query) return;
+            document.getElementById('loader-box').classList.remove('hidden');
             const results = await fetchPlayers(query, false);
             if (results && results.length > 0) selectPlayer(results[0]);
+            document.getElementById('loader-box').classList.add('hidden');
         }
 
         function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
-            
             document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
             document.getElementById('p-team').innerText = p.team.full_name;
-            document.getElementById('p-height').innerText = p.height || "TBD";
-            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "TBD";
+            document.getElementById('p-height').innerText = p.height || "ERR:NULL";
+            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "ERR:NULL";
             document.getElementById('p-conf').innerText = p.team.conference;
-            
             document.getElementById('result-area').classList.remove('hidden');
         }
     </script>
