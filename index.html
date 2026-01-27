@@ -50,4 +50,108 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
                     <div class="p-6 stat-card rounded-3xl">
                         <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
-                        <span id
+                        <span id="p-height" class="text-3xl font-black">--</span>
+                    </div>
+                    <div class="p-6 stat-card rounded-3xl">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Weight</span>
+                        <span id="p-weight" class="text-3xl font-black">--</span>
+                    </div>
+                    <div class="p-6 stat-card rounded-3xl col-span-2 md:col-span-1">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Conference</span>
+                        <span id="p-conf" class="text-3xl font-black uppercase">--</span>
+                    </div>
+                </div>
+
+                <div class="bg-white/5 p-8 rounded-3xl border-l-4 border-white/20">
+                    <h4 class="text-[10px] uppercase tracking-widest opacity-40 mb-3 font-bold">Scouting Analysis</h4>
+                    <p id="scout-note" class="text-xl italic opacity-90 leading-relaxed font-medium">---</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+
+        async function scoutPlayer() {
+            const rawInput = document.getElementById('player-search').value.trim();
+            if (!rawInput) return;
+
+            const loading = document.getElementById('loading');
+            const resultArea = document.getElementById('result-area');
+            const searchTerms = rawInput.toLowerCase().split(' ');
+
+            loading.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+
+            try {
+                // Search for the primary term
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(searchTerms[0])}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+
+                if (!res.ok) throw new Error("API Connection Failed");
+                
+                const json = await res.json();
+                const players = json.data;
+
+                if (!players || players.length === 0) {
+                    alert("Player not found in active directory.");
+                    return;
+                }
+
+                // --- SMART MATCHING LOGIC ---
+                let player = players[0]; // Default
+                
+                if (searchTerms.length > 1) {
+                    // Look for a player that matches both first and last name keywords
+                    const bestMatch = players.find(p => 
+                        (p.first_name.toLowerCase().includes(searchTerms[0]) || p.last_name.toLowerCase().includes(searchTerms[0])) &&
+                        (p.first_name.toLowerCase().includes(searchTerms[1]) || p.last_name.toLowerCase().includes(searchTerms[1]))
+                    );
+                    if (bestMatch) player = bestMatch;
+                } else {
+                    // If searching just "Curry", try to prioritize "Stephen"
+                    const legendMatch = players.find(p => p.first_name === "Stephen" || p.first_name === "LeBron");
+                    if (legendMatch) player = legendMatch;
+                }
+
+                // Update Text Elements
+                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+                document.getElementById('player-pos').innerText = player.position || "Prospect";
+                document.getElementById('player-team-city').innerText = player.team?.city || "NBA";
+                document.getElementById('player-team-name').innerText = player.team?.name || "Roster";
+                document.getElementById('p-height').innerText = player.height || "TBD";
+                document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "TBD";
+                document.getElementById('p-conf').innerText = player.team?.conference || "NBA";
+
+                // Scouting Notes
+                const notes = {
+                    'G': "Elite floor spacing and perimeter threat. Capable of generating high-volume offense.",
+                    'F': "Versatile wing defender with the length to disrupt passing lanes and finish at the rim.",
+                    'C': "Dominant interior presence. Anchors the defense and controls the glass.",
+                };
+                document.getElementById('scout-note').innerText = notes[player.position?.split('-')[0]] || "A key rotational piece with high-IQ positioning.";
+
+                // Dynamic UI Coloring
+                const team = player.team?.abbreviation;
+                const colors = {
+                    'GSW': '#ffc72c', 'LAL': '#552583', 'BOS': '#007a33', 'PHX': '#e56020', 
+                    'DAL': '#00538c', 'CHI': '#ce1141', 'MIA': '#98002e', 'MIL': '#00471b'
+                };
+                const themeColor = colors[team] || '#00d1ff';
+                document.getElementById('brand-color').style.color = themeColor;
+                document.getElementById('main-card').style.borderColor = themeColor;
+
+                resultArea.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                alert("Search Error: Check connection or Key.");
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
