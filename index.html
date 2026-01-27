@@ -54,65 +54,83 @@
     </div>
 
     <script>
-     async function findGoat() {
+const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+
+// 2026 All-Time Leaders Data
+const ALL_TIME_LEADERS = {
+    points: ["LeBron James", "Kareem Abdul-Jabbar", "Karl Malone", "Kobe Bryant", "Michael Jordan", "Kevin Durant", "Dirk Nowitzki", "Wilt Chamberlain", "Julius Erving", "James Harden"],
+    threePointers: ["Stephen Curry", "James Harden", "Ray Allen", "Klay Thompson", "Damian Lillard", "LeBron James", "Reggie Miller", "Kyle Korver", "Paul George", "Vince Carter"],
+    freeThrowPct: ["Stephen Curry", "Steve Nash", "Mark Price", "Rick Barry", "Damian Lillard", "Peja Stojakovic", "Chauncey Billups", "Ray Allen", "JJ Redick", "Calvin Murphy"]
+};
+
+async function findGoat() {
     const query = document.getElementById('player-search').value;
     const loading = document.getElementById('loading');
     const resultArea = document.getElementById('result-area');
     
     if(!query) return;
-
     loading.classList.remove('hidden');
     resultArea.classList.add('hidden');
 
     try {
-        // 1. Search for the player to get their ID
+        // 1. Search for Player
         const playerRes = await fetch(`https://api.balldontlie.io/v1/players?search=${query}`, {
-            headers: { 'Authorization': 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f' } // Get this from balldontlie.io
+            headers: { 'Authorization': API_KEY }
         });
         const playerData = await playerRes.json();
 
-        if (playerData.data.length === 0) {
-            alert("Player not found. Are they a benchwarmer?");
+        if (!playerData.data || playerData.data.length === 0) {
+            alert("Player not found in the archives.");
             loading.classList.add('hidden');
             return;
         }
 
         const player = playerData.data[0];
+        const fullName = `${player.first_name} ${player.last_name}`;
 
-        // 2. Get their Season Stats (2025)
+        // 2. Fetch Season Stats (2025-26)
         const statsRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
-            headers: { 'Authorization': 'YOUR_FREE_API_KEY' }
+            headers: { 'Authorization': API_KEY }
         });
         const statsData = await statsRes.json();
-        const stats = statsData.data[0] || { pts: "N/A", ast: "N/A", reb: "N/A" };
+        const s = statsData.data[0] || { pts: 0, ast: 0, reb: 0 };
 
-        // 3. Update the UI
-        document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-        document.getElementById('player-team').innerText = player.team ? player.team.full_name : "Retired / Free Agent";
-        document.getElementById('stat-ppg').innerText = stats.pts;
-        document.getElementById('stat-ast').innerText = stats.ast;
-        document.getElementById('stat-reb').innerText = stats.reb;
-        
-        // 4. Generate the AI Summary (The "Vibe" Logic)
-        generateAISummary(player, stats);
+        // 3. Update UI
+        document.getElementById('player-name').innerText = fullName;
+        document.getElementById('player-team').innerText = player.team ? player.team.full_name : "NBA Legend";
+        document.getElementById('stat-ppg').innerText = s.pts || "N/A";
+        document.getElementById('stat-ast').innerText = s.ast || "N/A";
+        document.getElementById('stat-reb').innerText = s.reb || "N/A";
+
+        // 4. Calculate All-Time Rank Vibe
+        let rankText = "Top 100+";
+        if (ALL_TIME_LEADERS.points.includes(fullName)) rankText = "TOP 10 PTS";
+        if (ALL_TIME_LEADERS.threePointers.includes(fullName)) rankText = "TOP 10 3PM";
+        if (fullName === "Stephen Curry") rankText = "#1 ALL TIME";
+
+        document.getElementById('stat-rank').innerText = rankText;
+
+        // 5. Generate AI Summary
+        generateAISummary(fullName, s);
 
         loading.classList.add('hidden');
         resultArea.classList.remove('hidden');
 
     } catch (err) {
         console.error(err);
-        alert("The stat sheet is jammed. Try again.");
+        alert("API Error. Make sure your key is active!");
+        loading.classList.add('hidden');
     }
 }
 
-function generateAISummary(player, stats) {
+function generateAISummary(name, stats) {
     let summary = "";
-    if (stats.pts > 25) {
-        summary = `${player.last_name} is currently a scoring machine, averaging elite numbers that place them in the top tier of active bucket-getters.`;
-    } else if (player.last_name === "Jordan") {
-        summary = "The standard for perfection. 6-0 in the Finals. The gravity of his legacy still defines the modern game.";
+    if (name.includes("Curry")) {
+        summary = "The greatest shooter to ever live. Changed the geometry of the game forever. Currently leading the league in 'gravity'.";
+    } else if (stats.pts > 28) {
+        summary = `${name} is on an absolute tear this season, putting up numbers that rival the most dominant scoring seasons in modern history.`;
     } else {
-        summary = `${player.first_name} ${player.last_name}'s impact goes beyond the box score, providing the veteran presence and tactical IQ that defines an NBA legend.`;
+        summary = `A certified bucket. Whether it's the advanced metrics or the eye test, ${name} remains a central figure in the GOAT conversation.`;
     }
     document.getElementById('ai-summary').innerText = summary;
 }
