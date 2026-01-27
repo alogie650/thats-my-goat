@@ -86,23 +86,37 @@
         }
 
         // 2. Fetch players from API
-        async function fetchSuggestions(query) {
-            const indicator = document.getElementById('search-indicator');
-            indicator.classList.remove('hidden');
+       async function fetchSuggestions(query) {
+    const indicator = document.getElementById('search-indicator');
+    indicator.classList.remove('hidden');
 
-            try {
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-                const json = await res.json();
-                renderSuggestions(json.data || []);
-            } catch (err) {
-                console.error("API Error:", err);
-            } finally {
-                indicator.classList.add('hidden');
-            }
-        }
+    // Split the input: e.g., "Brandin Pod" -> first: "Brandin", last: "Pod"
+    const terms = query.trim().split(' ');
+    let url = `https://api.balldontlie.io/v1/players?`;
 
+    if (terms.length > 1) {
+        // If there's a space, search specifically by first and last name
+        url += `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}`;
+    } else {
+        // Otherwise, use the general search
+        url += `search=${encodeURIComponent(terms[0])}`;
+    }
+
+    try {
+        const res = await fetch(url, {
+            headers: { 'Authorization': API_KEY }
+        });
+        const json = await res.json();
+        
+        // Filter out "empty" results where player data is missing
+        const validPlayers = (json.data || []).filter(p => p.first_name && p.last_name);
+        renderSuggestions(validPlayers);
+    } catch (err) {
+        console.error("API Error:", err);
+    } finally {
+        indicator.classList.add('hidden');
+    }
+}
         // 3. Render the list
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
