@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's my GOAT | 2026 Pro</title>
+    <title>That's my GOAT | 2026 Legend Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -11,57 +11,82 @@
         .glass { background: #151515; border: 1px solid #222; }
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        .suggestion-item:hover { background-color: #00ff85; color: #000; }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(0, 255, 133, 0.4); transform: translateY(-2px); }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; appearance: none; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-12">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase italic">THAT'S MY <span class="neon-yellow">GOAT</span></h1>
-            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold">Authenticated 2026 Data Stream</p>
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase italic tracking-tighter">
+                THAT'S MY <span class="neon-yellow">GOAT</span>
+            </h1>
+            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold text-white">2026 Season Legacy Stream</p>
         </header>
 
-        <div class="relative mb-12">
+        <div class="space-y-4 mb-12">
             <div class="flex flex-col md:flex-row gap-4">
-                <div class="relative flex-1">
-                    <input id="player-search" type="text" autocomplete="off" placeholder="Search (e.g. Curry)" 
-                           class="w-full p-6 rounded-2xl bg-[#111] border-2 border-[#222] text-white focus:outline-none focus:border-[#00ff85] transition-all text-xl font-bold">
-                    <div id="suggestions" class="hidden absolute z-50 w-full mt-2 bg-[#1a1a1a] border-2 border-[#333] rounded-2xl shadow-2xl overflow-hidden"></div>
+                <select id="goat-select" onchange="useDropdown()" class="md:w-1/3 p-6 rounded-2xl bg-[#1a1a1a] border-2 border-[#333] text-white font-bold focus:border-[#00ff85] outline-none cursor-pointer">
+                    <option value="">Quick Select Legend</option>
+                    <optgroup label="2026 Top Scorers">
+                        <option value="Luka Doncic">Luka Doncic</option>
+                        <option value="Shai Gilgeous-Alexander">Shai Gilgeous-Alexander</option>
+                        <option value="Victor Wembanyama">Victor Wembanyama</option>
+                        <option value="Giannis Antetokounmpo">Giannis Antetokounmpo</option>
+                        <option value="Jayson Tatum">Jayson Tatum</option>
+                    </optgroup>
+                    <optgroup label="All-Time GOATs">
+                        <option value="LeBron James">LeBron James</option>
+                        <option value="Stephen Curry">Stephen Curry</option>
+                        <option value="Kevin Durant">Kevin Durant</option>
+                        <option value="Michael Jordan">Michael Jordan</option>
+                        <option value="Kobe Bryant">Kobe Bryant</option>
+                    </optgroup>
+                </select>
+
+                <div class="flex-1 flex gap-2">
+                    <input id="player-search" type="text" placeholder="Or type any name..." 
+                           class="flex-1 p-6 rounded-2xl bg-[#111] border-2 border-[#222] text-white focus:outline-none focus:border-[#00ff85] transition-all text-xl font-bold">
+                    <button onclick="findGoat()" class="btn-glow bg-[#00ff85] text-black font-black px-8 py-6 rounded-2xl uppercase tracking-widest hover:scale-105 transition">
+                        GO
+                    </button>
                 </div>
-                <button onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-12 py-6 rounded-2xl uppercase tracking-widest hover:scale-105 transition">Analyze</button>
             </div>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8">Pinging NBA Servers...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold">PULLING LIVE STATS...</div>
 
-        <div id="result-area" class="hidden space-y-6">
+        <div id="result-area" class="hidden">
             <div class="glass p-8 md:p-12 rounded-[2.5rem]">
-                <div class="flex justify-between items-end mb-8">
+                <div class="flex justify-between items-end mb-10">
                     <div>
-                        <h2 id="player-name" class="text-5xl font-black uppercase italic tracking-tighter">---</h2>
-                        <p id="player-team" class="neon-green text-sm uppercase tracking-widest mt-2 font-bold">---</p>
+                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter">---</h2>
+                        <p id="player-team" class="neon-green text-lg uppercase tracking-widest mt-2 font-bold">---</p>
                     </div>
-                    <div class="px-6 py-2 rounded-full border border-neon-yellow/30"><span id="stat-rank" class="neon-yellow text-xs font-black uppercase">TIER 1</span></div>
+                    <div class="px-6 py-2 rounded-full border border-neon-yellow/30 bg-neon-yellow/5">
+                        <span id="stat-rank" class="neon-yellow text-sm font-black">---</span>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 mb-8">
-                    <div class="p-6 bg-black rounded-2xl border border-white/5 text-center">
+                <div class="grid grid-cols-3 gap-6 mb-10">
+                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
                         <span class="block text-[10px] opacity-40 uppercase mb-1">PPG</span>
-                        <span id="stat-ppg" class="text-3xl font-black">--</span>
+                        <span id="stat-ppg" class="text-4xl font-black">--</span>
                     </div>
-                    <div class="p-6 bg-black rounded-2xl border border-white/5 text-center">
+                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
                         <span class="block text-[10px] opacity-40 uppercase mb-1">REB</span>
-                        <span id="stat-reb" class="text-3xl font-black">--</span>
+                        <span id="stat-reb" class="text-4xl font-black">--</span>
                     </div>
-                    <div class="p-6 bg-black rounded-2xl border border-white/5 text-center">
+                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
                         <span class="block text-[10px] opacity-40 uppercase mb-1">AST</span>
-                        <span id="stat-ast" class="text-3xl font-black">--</span>
+                        <span id="stat-ast" class="text-4xl font-black">--</span>
                     </div>
                 </div>
 
-                <div class="bg-black/50 p-6 rounded-2xl border-l-4 border-[#00ff85]">
-                    <p id="ai-summary" class="italic opacity-90 leading-relaxed">Select a player to generate legacy analysis...</p>
+                <div class="bg-black/60 p-8 rounded-3xl border-l-8 border-[#00ff85]">
+                    <h3 class="text-xs font-black uppercase mb-4 opacity-40">GOAT Verdict</h3>
+                    <p id="ai-summary" class="text-xl leading-relaxed italic opacity-95 text-white font-medium">---</p>
                 </div>
             </div>
         </div>
@@ -69,44 +94,17 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        const searchInput = document.getElementById('player-search');
-        const suggestionsBox = document.getElementById('suggestions');
-        let debounceTimer;
 
-        searchInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            const query = searchInput.value.trim();
-            if (query.length < 2) { suggestionsBox.classList.add('hidden'); return; }
-            debounceTimer = setTimeout(() => fetchSuggestions(query), 300);
-        });
-
-        async function fetchSuggestions(query) {
-            try {
-                // 2026 Endpoint Update: Using https://api.balldontlie.io/v1/players
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-                const result = await res.json();
-                if (result.data && result.data.length > 0) {
-                    suggestionsBox.innerHTML = '';
-                    suggestionsBox.classList.remove('hidden');
-                    result.data.slice(0, 5).forEach(p => {
-                        const div = document.createElement('div');
-                        div.className = 'suggestion-item p-4 cursor-pointer border-b border-[#222] font-bold flex justify-between';
-                        div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span class="opacity-30 text-xs uppercase">${p.team?.abbreviation || 'NBA'}</span>`;
-                        div.onclick = () => {
-                            searchInput.value = `${p.first_name} ${p.last_name}`;
-                            suggestionsBox.classList.add('hidden');
-                            findGoat();
-                        };
-                        suggestionsBox.appendChild(div);
-                    });
-                }
-            } catch (err) { console.error("Autocomplete failed:", err); }
+        function useDropdown() {
+            const dropdown = document.getElementById('goat-select');
+            if (dropdown.value) {
+                document.getElementById('player-search').value = dropdown.value;
+                findGoat();
+            }
         }
 
         async function findGoat() {
-            const query = searchInput.value.trim();
+            const query = document.getElementById('player-search').value.trim();
             const loading = document.getElementById('loading');
             const resultArea = document.getElementById('result-area');
             
@@ -115,7 +113,7 @@
             resultArea.classList.add('hidden');
 
             try {
-                // Fetch player ID
+                // Step 1: Search for Player (using the specific /players endpoint)
                 const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
                     headers: { 'Authorization': API_KEY }
                 });
@@ -123,36 +121,33 @@
                 const player = pData.data[0];
 
                 if (!player) {
-                    alert("No player found for: " + query);
+                    alert("Player not found in our 2026 database. Try a common name like 'Luka' or 'LeBron'.");
                     loading.classList.add('hidden');
                     return;
                 }
 
-                // Fetch 2025 Season Averages
+                // Step 2: Fetch 2025-26 Season Averages (ID specific)
                 const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
                     headers: { 'Authorization': API_KEY }
                 });
                 const sData = await sRes.json();
-                const s = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
+                const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
 
-                // Update UI
+                // Step 3: Update UI
                 document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
                 document.getElementById('player-team').innerText = player.team?.full_name || "NBA Legend";
-                document.getElementById('stat-ppg').innerText = s.pts || "0.0";
-                document.getElementById('stat-reb').innerText = s.reb || "0.0";
-                document.getElementById('stat-ast').innerText = s.ast || "0.0";
-
-                document.getElementById('ai-summary').innerText = s.pts > 25 ? 
-                    "Currently playing at an All-NBA level. The statistical gravity of this season cements their position in the GOAT conversation." : 
-                    "A legendary presence whose impact on winning transcends the basic box score.";
-
-                loading.classList.add('hidden');
-                resultArea.classList.remove('hidden');
-            } catch (err) {
-                console.error("Critical error:", err);
-                loading.classList.add('hidden');
-            }
-        }
-    </script>
-</body>
-</html>
+                document.getElementById('stat-ppg').innerText = stats.pts || "0.0";
+                document.getElementById('stat-reb').innerText = stats.reb || "0.0";
+                document.getElementById('stat-ast').innerText = stats.ast || "0.0";
+                
+                // Logic-based Verdicts
+                let verdict = "";
+                let rank = "ELITE TIER";
+                if (player.last_name === "James") {
+                    verdict = "Still redefining longevity in 2026. The only player to reach the 40k/10k/10k club.";
+                    rank = "#1 ALL-TIME";
+                } else if (player.last_name === "Curry") {
+                    verdict = "The greatest shooter ever. In 2026, his 'gravity' still breaks every defense he faces.";
+                    rank = "SNIPER GOAT";
+                } else if (player.last_name === "Wembanyama") {
+                    verdict = "The alien. Dominating both ends of the floor
