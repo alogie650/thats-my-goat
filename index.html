@@ -3,90 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's my GOAT | 2026 Legend Edition</title>
+    <title>That's my GOAT | 2026 Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
-        .glass { background: #151515; border: 1px solid #222; }
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: #111; border: 1px solid #222; }
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        .btn-glow:hover { box-shadow: 0 0 20px rgba(0, 255, 133, 0.4); transform: translateY(-2px); }
-        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; appearance: none; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-12">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase italic tracking-tighter">
-                THAT'S MY <span class="neon-yellow">GOAT</span>
-            </h1>
-            <p class="text-xs tracking-[0.4em] opacity-40 uppercase font-bold text-white">2026 Season Legacy Stream</p>
+        <header class="text-center mb-10">
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">THAT'S MY <span class="neon-yellow">GOAT</span></h1>
+            <p class="text-[10px] tracking-[0.5em] opacity-30 uppercase font-bold text-white">2026 Data Verification Active</p>
         </header>
 
-        <div class="space-y-4 mb-12">
-            <div class="flex flex-col md:flex-row gap-4">
-                <select id="goat-select" onchange="useDropdown()" class="md:w-1/3 p-6 rounded-2xl bg-[#1a1a1a] border-2 border-[#333] text-white font-bold focus:border-[#00ff85] outline-none cursor-pointer">
-                    <option value="">Quick Select Legend</option>
-                    <optgroup label="2026 Top Scorers">
-                        <option value="Luka Doncic">Luka Doncic</option>
-                        <option value="Shai Gilgeous-Alexander">Shai Gilgeous-Alexander</option>
-                        <option value="Victor Wembanyama">Victor Wembanyama</option>
-                        <option value="Giannis Antetokounmpo">Giannis Antetokounmpo</option>
-                        <option value="Jayson Tatum">Jayson Tatum</option>
-                    </optgroup>
-                    <optgroup label="All-Time GOATs">
-                        <option value="LeBron James">LeBron James</option>
-                        <option value="Stephen Curry">Stephen Curry</option>
-                        <option value="Kevin Durant">Kevin Durant</option>
-                        <option value="Michael Jordan">Michael Jordan</option>
-                        <option value="Kobe Bryant">Kobe Bryant</option>
-                    </optgroup>
-                </select>
+        <div class="glass p-4 rounded-3xl mb-8 flex flex-col md:flex-row gap-4">
+            <select id="goat-select" onchange="useDropdown()" class="md:w-1/3 p-4 rounded-xl bg-black border border-[#333] text-white font-bold outline-none focus:border-[#00ff85]">
+                <option value="">Quick Select</option>
+                <option value="LeBron James">LeBron James</option>
+                <option value="Stephen Curry">Stephen Curry</option>
+                <option value="Victor Wembanyama">Victor Wembanyama</option>
+                <option value="Luka Doncic">Luka Doncic</option>
+                <option value="Nikola Jokic">Nikola Jokic</option>
+            </select>
 
-                <div class="flex-1 flex gap-2">
-                    <input id="player-search" type="text" placeholder="Or type any name..." 
-                           class="flex-1 p-6 rounded-2xl bg-[#111] border-2 border-[#222] text-white focus:outline-none focus:border-[#00ff85] transition-all text-xl font-bold">
-                    <button onclick="findGoat()" class="btn-glow bg-[#00ff85] text-black font-black px-8 py-6 rounded-2xl uppercase tracking-widest hover:scale-105 transition">
-                        GO
-                    </button>
-                </div>
+            <div class="flex-1 flex gap-2">
+                <input id="player-search" type="text" placeholder="Or type a name..." 
+                       class="flex-1 p-4 rounded-xl bg-black border border-[#333] text-white focus:outline-none focus:border-[#00ff85] font-bold">
+                <button onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-10 py-4 rounded-xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition">
+                    GO
+                </button>
             </div>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold">PULLING LIVE STATS...</div>
+        <div id="status-bar" class="text-center mb-8 text-[10px] opacity-40 uppercase tracking-widest">
+            <span id="status-dot" class="status-dot bg-gray-500"></span>
+            System Status: <span id="status-text">Ready</span>
+        </div>
 
-        <div id="result-area" class="hidden">
-            <div class="glass p-8 md:p-12 rounded-[2.5rem]">
-                <div class="flex justify-between items-end mb-10">
+        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold text-xl uppercase italic">FETCHING DATABASE...</div>
+
+        <div id="result-area" class="hidden animate-in fade-in duration-500">
+            <div class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00ff85]">
+                <div class="flex justify-between items-start mb-10">
                     <div>
-                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter">---</h2>
-                        <p id="player-team" class="neon-green text-lg uppercase tracking-widest mt-2 font-bold">---</p>
+                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
+                        <p id="player-team" class="neon-green text-sm uppercase tracking-widest mt-4 font-bold">---</p>
                     </div>
-                    <div class="px-6 py-2 rounded-full border border-neon-yellow/30 bg-neon-yellow/5">
-                        <span id="stat-rank" class="neon-yellow text-sm font-black">---</span>
+                    <div class="px-5 py-2 rounded-full border border-neon-yellow/20 bg-neon-yellow/5">
+                        <span id="stat-rank" class="neon-yellow text-[10px] font-black uppercase">---</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-6 mb-10">
-                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">PPG</span>
+                <div class="grid grid-cols-3 gap-4 mb-10">
+                    <div class="p-6 bg-black rounded-3xl text-center border border-white/5">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2">Points</span>
                         <span id="stat-ppg" class="text-4xl font-black">--</span>
                     </div>
-                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">REB</span>
+                    <div class="p-6 bg-black rounded-3xl text-center border border-white/5">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2">Rebs</span>
                         <span id="stat-reb" class="text-4xl font-black">--</span>
                     </div>
-                    <div class="p-8 bg-black/50 rounded-3xl border border-white/5 text-center">
-                        <span class="block text-[10px] opacity-40 uppercase mb-1">AST</span>
+                    <div class="p-6 bg-black rounded-3xl text-center border border-white/5">
+                        <span class="block text-[10px] opacity-40 uppercase mb-2">Assts</span>
                         <span id="stat-ast" class="text-4xl font-black">--</span>
                     </div>
                 </div>
 
-                <div class="bg-black/60 p-8 rounded-3xl border-l-8 border-[#00ff85]">
-                    <h3 class="text-xs font-black uppercase mb-4 opacity-40">GOAT Verdict</h3>
-                    <p id="ai-summary" class="text-xl leading-relaxed italic opacity-95 text-white font-medium">---</p>
+                <div class="bg-black/80 p-6 rounded-2xl border-l-2 border-[#00ff85]">
+                    <p id="ai-summary" class="text-lg italic opacity-80 leading-relaxed text-white">---</p>
                 </div>
             </div>
         </div>
@@ -94,60 +84,85 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        function setStatus(type, msg) {
+            statusText.innerText = msg;
+            statusDot.className = `status-dot ${type === 'ok' ? 'bg-[#00ff85]' : type === 'err' ? 'bg-red-500' : 'bg-yellow-500'}`;
+        }
 
         function useDropdown() {
-            const dropdown = document.getElementById('goat-select');
-            if (dropdown.value) {
-                document.getElementById('player-search').value = dropdown.value;
+            const val = document.getElementById('goat-select').value;
+            if (val) {
+                document.getElementById('player-search').value = val;
                 findGoat();
             }
         }
 
         async function findGoat() {
-            const query = document.getElementById('player-search').value.trim();
+            const queryInput = document.getElementById('player-search');
+            const query = queryInput.value.trim();
             const loading = document.getElementById('loading');
             const resultArea = document.getElementById('result-area');
             
             if(!query) return;
+
             loading.classList.remove('hidden');
             resultArea.classList.add('hidden');
+            setStatus('loading', 'Searching...');
 
             try {
-                // Step 1: Search for Player (using the specific /players endpoint)
+                // FETCH PLAYER
                 const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+                    method: 'GET',
                     headers: { 'Authorization': API_KEY }
                 });
+
+                if (!pRes.ok) throw new Error("API Auth Failed");
+                
                 const pData = await pRes.json();
                 const player = pData.data[0];
 
                 if (!player) {
-                    alert("Player not found in our 2026 database. Try a common name like 'Luka' or 'LeBron'.");
+                    alert("Player Not Found. Please try searching for just their last name (e.g. 'Curry').");
                     loading.classList.add('hidden');
+                    setStatus('err', 'Player Not Found');
                     return;
                 }
 
-                // Step 2: Fetch 2025-26 Season Averages (ID specific)
+                // FETCH STATS
                 const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
+                    method: 'GET',
                     headers: { 'Authorization': API_KEY }
                 });
-                const sData = await sRes.json();
-                const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
-
-                // Step 3: Update UI
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-team').innerText = player.team?.full_name || "NBA Legend";
-                document.getElementById('stat-ppg').innerText = stats.pts || "0.0";
-                document.getElementById('stat-reb').innerText = stats.reb || "0.0";
-                document.getElementById('stat-ast').innerText = stats.ast || "0.0";
                 
-                // Logic-based Verdicts
-                let verdict = "";
-                let rank = "ELITE TIER";
-                if (player.last_name === "James") {
-                    verdict = "Still redefining longevity in 2026. The only player to reach the 40k/10k/10k club.";
-                    rank = "#1 ALL-TIME";
-                } else if (player.last_name === "Curry") {
-                    verdict = "The greatest shooter ever. In 2026, his 'gravity' still breaks every defense he faces.";
-                    rank = "SNIPER GOAT";
-                } else if (player.last_name === "Wembanyama") {
-                    verdict = "The alien. Dominating both ends of the floor
+                const sData = await sRes.json();
+                const s = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
+
+                // UPDATE UI
+                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+                document.getElementById('player-team').innerText = player.team?.full_name || "NBA Archive";
+                document.getElementById('stat-ppg').innerText = s.pts || "0.0";
+                document.getElementById('stat-reb').innerText = s.reb || "0.0";
+                document.getElementById('stat-ast').innerText = s.ast || "0.0";
+                
+                document.getElementById('stat-rank').innerText = s.pts > 20 ? "ELITE / GOAT CONTENDER" : "VETERAN IMPACT";
+                document.getElementById('ai-summary').innerText = s.pts > 25 ? 
+                    "Currently operating at a historic efficiency level. In 2026, their dominance on the court is unmatched." : 
+                    "A tactical mastermind on the court whose contribution goes far beyond the raw stat sheet.";
+
+                loading.classList.add('hidden');
+                resultArea.classList.remove('hidden');
+                setStatus('ok', 'Data Synced');
+
+            } catch (err) {
+                console.error(err);
+                loading.classList.add('hidden');
+                setStatus('err', 'Network Timeout');
+                alert("API rate limit hit. Wait 10 seconds and try again!");
+            }
+        }
+    </script>
+</body>
+</html>
