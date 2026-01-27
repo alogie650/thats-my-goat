@@ -3,70 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT | Terminal</title>
+    <title>That's My GOAT | Wide-Format</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Modern Terminal Pixel Font */
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
         body { 
-            background-color: #000000; 
-            color: #ffffff; 
+            background-color: #000; 
+            color: #fff; 
             font-family: 'VT323', monospace; 
-            font-size: 20px;
+            font-size: 22px;
             margin: 0;
             text-transform: uppercase;
+            /* Global Kerning */
+            letter-spacing: 0.1em;
         }
         
-        .solid-box { 
-            background: #000; 
-            border: 2px solid #333; 
-            position: relative; 
-        }
-
+        .solid-box { background: #000; border: 2px solid #333; position: relative; }
         .neon-green { 
             color: #39FF14; 
-            text-shadow: 2px 2px #000, 0 0 8px rgba(57, 255, 20, 0.4);
+            text-shadow: 2px 2px #000, 0 0 8px rgba(57, 255, 20, 0.4); 
+            letter-spacing: 0.15em;
         }
         
-        /* THE CURSOR */
-        #player-search {
+        /* SEARCH BOX & CURSOR */
+        #player-search { 
             caret-color: transparent; 
-            z-index: 2;
-            letter-spacing: 1px;
+            z-index: 2; 
+            letter-spacing: 0.15em; /* Matching input kerning */
         }
-
+        
         #fake-cursor {
             position: absolute;
             width: 14px;
             height: 24px;
             background-color: #39FF14;
-            animation: blink 0.8s step-end infinite;
+            animation: blink 0.6s step-end infinite;
             pointer-events: none;
             z-index: 1;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .pixel-logo {
+            width: 90px;
+            height: 90px;
+            image-rendering: pixelated;
+            filter: contrast(160%) brightness(90%) grayscale(30%);
+            border: 2px solid #222;
+            padding: 8px;
+            background: #050505;
         }
 
-        /* RETRO SQUARE LOADER */
-        .loader-sq {
-            width: 20px;
-            height: 20px;
-            border: 1px solid #111;
-            position: relative;
-        }
-        .loader-dot {
-            width: 6px;
-            height: 6px;
-            background: #39FF14;
-            position: absolute;
-            animation: squareMove 1s infinite linear;
-        }
-
-        @keyframes squareMove {
+        .loader-sq { width: 18px; height: 18px; border: 1px solid #222; position: relative; }
+        .loader-dot { width: 4px; height: 4px; background: #39FF14; position: absolute; animation: sqMove 0.6s infinite linear; }
+        @keyframes sqMove {
             0% { top: 0; left: 0; }
             25% { top: 0; left: 14px; }
             50% { top: 14px; left: 14px; }
@@ -74,21 +65,23 @@
             100% { top: 0; left: 0; }
         }
 
+        .suggestion-item { letter-spacing: 0.1em; }
         .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
         
-        /* Remove italics from header as requested */
-        h1 { font-style: normal !important; letter-spacing: -2px; }
+        /* Headings */
+        h1 { font-weight: normal; letter-spacing: 0.2em; }
+        h2 { letter-spacing: 0.05em; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12" onload="updateCursor()">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-normal mb-2 uppercase tracking-tighter">
+            <h1 class="text-5xl md:text-7xl font-normal mb-2 uppercase tracking-widest">
                 THAT'S MY <span class="neon-green">GOAT</span>
             </h1>
-            <div class="text-sm tracking-[0.4em] opacity-60 border border-white/20 px-4 py-1 inline-block">
-                ROOT@NBA_ARCHIVE:~# READY
+            <div class="text-sm tracking-[0.6em] opacity-60 border border-white/20 px-6 py-1 inline-block">
+                SECURE_LINE: CONNECTED
             </div>
         </header>
 
@@ -107,39 +100,40 @@
                     <div class="loader-sq"><div class="loader-dot"></div></div>
                 </div>
 
-                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-8 py-4 hover:bg-white transition-colors text-xl">
-                    EXEC
+                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-10 py-4 hover:bg-white transition-colors text-xl tracking-widest">
+                    SEARCH
                 </button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 border-t-0"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
-                <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold neon-green">---</h2>
-                    <p id="p-team" class="text-3xl font-bold mt-2 text-white">---</p>
+            <div class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14] flex flex-col md:flex-row justify-between items-start">
+                <div class="flex-1">
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold neon-green leading-none mb-4">---</h2>
+                    <p id="p-team" class="text-3xl font-bold text-white tracking-widest">---</p>
+                    
+                    <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
+                        <div>
+                            <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DATA_HT</span>
+                            <span id="p-height" class="text-4xl font-bold tracking-widest">--</span>
+                        </div>
+                        <div>
+                            <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DATA_WT</span>
+                            <span id="p-weight" class="text-4xl font-bold tracking-widest">--</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-8 border-t-2 border-white/10 pt-8">
-                    <div>
-                        <span class="block text-lg opacity-50 mb-1">DATA:HEIGHT</span>
-                        <span id="p-height" class="text-4xl font-bold">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-lg opacity-50 mb-1">DATA:WEIGHT</span>
-                        <span id="p-weight" class="text-4xl font-bold">--</span>
-                    </div>
-                    <div class="col-span-2">
-                        <span class="block text-lg opacity-50 mb-1">DATA:CONFERENCE</span>
-                        <span id="p-conf" class="text-4xl font-bold">--</span>
-                    </div>
+                <div class="mt-8 md:mt-0 flex flex-col items-center">
+                    <img id="team-logo" src="" class="pixel-logo hidden" alt="LOGO">
+                    <span class="text-xs opacity-30 mt-4 tracking-[0.5em]">TEAM_ID</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 24px; text-transform: uppercase;"></span>
+    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 24px; letter-spacing: 0.15em;"></span>
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
@@ -155,18 +149,15 @@
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
             measurer.innerText = input.value || "";
-            // The 16 accounts for padding in the input
+            // Adjusted offset for kerning and padding
             cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            if (val.length < 2) { 
-                document.getElementById('suggestions').classList.add('hidden'); 
-                return; 
-            }
+            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
             document.getElementById('loader-box').classList.remove('hidden');
-            debounceTimer = setTimeout(() => fetchPlayers(val, true), 600);
+            debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
         }
 
         async function fetchPlayers(query, isDropdown = false) {
@@ -188,7 +179,7 @@
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-4 border-b border-white/5';
-                div.innerHTML = `${p.first_name} ${p.last_name} [${p.team.abbreviation}]`;
+                div.innerHTML = `${p.first_name} ${p.last_name} // ${p.team.abbreviation}`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -210,9 +201,14 @@
             updateCursor();
             document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
             document.getElementById('p-team').innerText = p.team.full_name;
-            document.getElementById('p-height').innerText = p.height || "ERR:NULL";
-            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "ERR:NULL";
-            document.getElementById('p-conf').innerText = p.team.conference;
+            document.getElementById('p-height').innerText = p.height || "N/A";
+            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "N/A";
+
+            const logo = document.getElementById('team-logo');
+            if(p.team.id) {
+                logo.src = `https://cdn.nba.com/logos/nba/${p.team.id}/global/L/logo.svg`;
+                logo.classList.remove('hidden');
+            }
             document.getElementById('result-area').classList.remove('hidden');
         }
     </script>
