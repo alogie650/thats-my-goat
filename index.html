@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's my GOAT | 2026 Direct</title>
+    <title>That's my GOAT | 2026 Debug Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -11,35 +11,27 @@
         .glass { background: #111; border: 1px solid #222; }
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        #meter-fill { transition: width 0.5s ease; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">THAT'S MY <span class="neon-yellow">GOAT</span></h1>
-            
-            <div class="max-w-xs mx-auto mt-4">
-                <div class="flex justify-between text-[10px] uppercase tracking-widest opacity-40 mb-1 font-bold">
-                    <span>API Credits</span>
-                    <span id="credit-count">5 / 5</span>
-                </div>
-                <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div id="meter-fill" class="h-full bg-[#00ff85] w-full"></div>
-                </div>
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic leading-tight">THAT'S MY <span class="neon-yellow">GOAT</span></h1>
+            <div id="api-status" class="text-[10px] uppercase tracking-widest opacity-40 font-bold border border-white/10 inline-block px-4 py-1 rounded-full">
+                System: <span id="status-text" class="text-white">Ready</span>
             </div>
         </header>
 
         <div class="glass p-4 rounded-3xl mb-12 flex gap-2">
-            <input id="player-search" type="text" placeholder="Search a player (e.g. Curry, LeBron, Luka)" 
+            <input id="player-search" type="text" placeholder="Search a player (e.g. Curry)" 
                    class="flex-1 p-5 rounded-2xl bg-black border border-[#333] text-white focus:outline-none focus:border-[#00ff85] font-bold text-lg">
-            <button id="search-btn" onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-10 py-5 rounded-2xl uppercase tracking-widest hover:scale-105 active:scale-95 transition disabled:opacity-20">
+            <button id="search-btn" onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-10 py-5 rounded-2xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition">
                 GO
             </button>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold text-xl italic uppercase">ACCESSING NBA MAIN DATA...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold text-xl italic uppercase">Requesting Data...</div>
 
         <div id="result-area" class="hidden">
             <div class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00ff85]">
@@ -48,11 +40,7 @@
                         <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
                         <p id="player-team" class="neon-green text-sm uppercase tracking-widest mt-4 font-bold">---</p>
                     </div>
-                    <div id="stat-rank-box" class="px-5 py-2 rounded-full border border-neon-yellow/20 bg-neon-yellow/5">
-                        <span id="stat-rank" class="neon-yellow text-[10px] font-black uppercase tracking-widest">RANKED T1</span>
-                    </div>
                 </div>
-
                 <div class="grid grid-cols-3 gap-4 mb-10">
                     <div class="p-6 bg-black rounded-3xl text-center border border-white/5">
                         <span class="block text-[10px] opacity-40 uppercase mb-2">PPG</span>
@@ -67,103 +55,88 @@
                         <span id="stat-ast" class="text-4xl font-black">--</span>
                     </div>
                 </div>
-
                 <div class="bg-black/80 p-6 rounded-2xl border-l-2 border-[#00ff85]">
-                    <p id="ai-summary" class="text-lg italic opacity-80 leading-relaxed text-white">Analysis pending...</p>
+                    <p id="ai-summary" class="text-lg italic opacity-80 leading-relaxed text-white">---</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Make sure this matches EXACTLY what you got from balldontlie.io
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        let credits = 5;
-        const statsCache = {};
-
-        // Manage Rate Limit UI
-        setInterval(() => {
-            if (credits < 5) {
-                credits++;
-                updateMeter();
-            }
-        }, 12000); 
-
-        function updateMeter() {
-            document.getElementById('credit-count').innerText = `${credits} / 5`;
-            document.getElementById('meter-fill').style.width = `${(credits / 5) * 100}%`;
-            document.getElementById('search-btn').disabled = (credits < 2);
-        }
 
         async function findGoat() {
-            const rawQuery = document.getElementById('player-search').value.trim();
-            if (!rawQuery || credits < 2) return;
-
-            const query = rawQuery.toLowerCase();
+            const query = document.getElementById('player-search').value.trim();
+            const statusText = document.getElementById('status-text');
             const loading = document.getElementById('loading');
             const resultArea = document.getElementById('result-area');
 
-            // Quick Cache Response
-            if (statsCache[query]) {
-                renderUI(statsCache[query].player, statsCache[query].stats);
-                return;
-            }
+            if (!query) return;
 
-            credits -= 2;
-            updateMeter();
             loading.classList.remove('hidden');
             resultArea.classList.add('hidden');
+            statusText.innerText = "Connecting...";
+            statusText.className = "text-yellow-400";
 
             try {
-                // STEP 1: Get Player ID
-                // Note: v1/players is correct for 2026. Headers MUST be exactly this.
+                // Fetch Player
                 const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 
+                        'Authorization': API_KEY,
+                        'Accept': 'application/json'
+                    }
                 });
+
+                if (!pRes.ok) {
+                    throw new Error(`Server Error: ${pRes.status}`);
+                }
                 
                 const pData = await pRes.json();
                 const player = pData.data[0];
 
                 if (!player) {
-                    alert(`No results for "${rawQuery}". Try just the last name.`);
+                    statusText.innerText = "No Player Found";
+                    statusText.className = "text-red-500";
                     loading.classList.add('hidden');
                     return;
                 }
 
-                // STEP 2: Get Stats (2025 Season)
+                // Fetch Stats
                 const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
-                    headers: { 'Authorization': API_KEY }
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 
+                        'Authorization': API_KEY,
+                        'Accept': 'application/json'
+                    }
                 });
                 
                 const sData = await sRes.json();
                 const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
 
-                // Store & Show
-                statsCache[query] = { player, stats };
-                renderUI(player, stats);
+                // Success!
+                statusText.innerText = "Online";
+                statusText.className = "text-green-400";
+                
+                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+                document.getElementById('player-team').innerText = player.team?.full_name || "NBA Archive";
+                document.getElementById('stat-ppg').innerText = stats.pts || "0.0";
+                document.getElementById('stat-reb').innerText = stats.reb || "0.0";
+                document.getElementById('stat-ast').innerText = stats.ast || "0.0";
+                document.getElementById('ai-summary').innerText = stats.pts > 20 ? "Elite scoring presence." : "Tactical impact player.";
+
+                resultArea.classList.remove('hidden');
 
             } catch (err) {
-                console.error("Critical API Error:", err);
-                alert("Connection failed. Check your API key or internet.");
+                console.error(err);
+                statusText.innerText = err.message;
+                statusText.className = "text-red-500";
             } finally {
                 loading.classList.add('hidden');
             }
-        }
-
-        function renderUI(player, s) {
-            document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-            document.getElementById('player-team').innerText = player.team?.full_name || "Free Agent / Legend";
-            document.getElementById('stat-ppg').innerText = s.pts || "0.0";
-            document.getElementById('stat-reb').innerText = s.reb || "0.0";
-            document.getElementById('stat-ast').innerText = s.ast || "0.0";
-            
-            // "AI" Verdict Logic
-            let verdict = "";
-            if (s.pts > 25) verdict = "A high-volume scoring engine. In 2026, their impact on the offensive end is truly historic.";
-            else if (s.pts > 15) verdict = "A reliable primary option who maintains high efficiency under pressure.";
-            else verdict = "A seasoned veteran whose value is found in the 'intangibles' and high-IQ playmaking.";
-
-            document.getElementById('ai-summary').innerText = verdict;
-            document.getElementById('result-area').classList.remove('hidden');
         }
     </script>
 </body>
