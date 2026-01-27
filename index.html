@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Scout | 2026 Smart Directory</title>
+    <title>NBA Scout | 2026 Pro Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -11,6 +11,7 @@
         .glass { background: rgba(17, 17, 17, 0.9); border: 1px solid #222; backdrop-filter: blur(10px); }
         .neon-text { color: #00d1ff; }
         .suggestion-item:hover { background: rgba(255, 255, 255, 0.05); color: #00d1ff; }
+        input::placeholder { opacity: 0.3; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
@@ -21,22 +22,29 @@
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition">
+            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition shadow-2xl">
                 <input id="player-search" type="text" autocomplete="off"
-                       placeholder="Type at least 2 letters..." 
+                       placeholder="Enter full name (e.g. Brandin Podziemski)" 
                        class="flex-1 p-4 bg-transparent text-white outline-none font-bold text-lg"
-                       oninput="handleInput(this.value)">
-                <div id="search-indicator" class="hidden pr-4"><div class="w-4 h-4 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div></div>
+                       oninput="handleInput(this.value)"
+                       onkeydown="if(event.key === 'Enter') performGlobalSearch()">
+                
+                <div id="search-indicator" class="hidden pr-2">
+                    <div class="w-5 h-5 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+
+                <button onclick="performGlobalSearch()" class="bg-white text-black font-bold px-6 py-4 rounded-xl hover:bg-[#00d1ff] transition uppercase text-sm tracking-widest">
+                    Search
+                </button>
             </div>
 
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-50 shadow-2xl border border-white/10">
-                </div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-50 shadow-2xl border border-white/10"></div>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold italic">RETRIEVING PROFILE...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold italic tracking-widest">ANALYZING ROSTER DATA...</div>
 
         <div id="result-area" class="hidden">
-            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff]">
+            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff] shadow-inner">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                     <div>
                         <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
@@ -50,15 +58,15 @@
 
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Height</span>
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
                         <span id="p-height" class="text-3xl font-black">--</span>
                     </div>
                     <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Weight</span>
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Weight</span>
                         <span id="p-weight" class="text-3xl font-black">--</span>
                     </div>
                     <div class="p-6 bg-black/40 rounded-3xl border border-white/5 col-span-2 md:col-span-1">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Division</span>
+                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Conference</span>
                         <span id="p-conf" class="text-3xl font-black uppercase">--</span>
                     </div>
                 </div>
@@ -70,102 +78,101 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
 
-        // 1. Handle typing with debounce to save API credits
+        // 1. Suggestions logic (Dropdown)
         function handleInput(val) {
             clearTimeout(debounceTimer);
             const dropdown = document.getElementById('suggestions');
-            
             if (val.length < 2) {
                 dropdown.classList.add('hidden');
                 return;
             }
-
-            debounceTimer = setTimeout(() => {
-                fetchSuggestions(val);
-            }, 400); // Wait 400ms after user stops typing
+            debounceTimer = setTimeout(() => fetchSuggestions(val), 400);
         }
 
-        // 2. Fetch players from API
-       async function fetchSuggestions(query) {
-    const indicator = document.getElementById('search-indicator');
-    indicator.classList.remove('hidden');
+        async function fetchSuggestions(query) {
+            const indicator = document.getElementById('search-indicator');
+            indicator.classList.remove('hidden');
+            try {
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+                const json = await res.json();
+                renderSuggestions(json.data || []);
+            } catch (err) { console.error(err); } 
+            finally { indicator.classList.add('hidden'); }
+        }
 
-    // Split the input: e.g., "Brandin Pod" -> first: "Brandin", last: "Pod"
-    const terms = query.trim().split(' ');
-    let url = `https://api.balldontlie.io/v1/players?`;
-
-    if (terms.length > 1) {
-        // If there's a space, search specifically by first and last name
-        url += `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}`;
-    } else {
-        // Otherwise, use the general search
-        url += `search=${encodeURIComponent(terms[0])}`;
-    }
-
-    try {
-        const res = await fetch(url, {
-            headers: { 'Authorization': API_KEY }
-        });
-        const json = await res.json();
-        
-        // Filter out "empty" results where player data is missing
-        const validPlayers = (json.data || []).filter(p => p.first_name && p.last_name);
-        renderSuggestions(validPlayers);
-    } catch (err) {
-        console.error("API Error:", err);
-    } finally {
-        indicator.classList.add('hidden');
-    }
-}
-        // 3. Render the list
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
-            
-            if (players.length === 0) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-
-            // Limit to 5 as requested
-            const list = players.slice(0, 5);
-            
-            list.forEach(player => {
+            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
+            players.slice(0, 5).forEach(player => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 last:border-0 transition flex justify-between items-center';
-                div.innerHTML = `
-                    <span>${player.first_name} ${player.last_name}</span>
-                    <span class="text-[10px] opacity-30 uppercase">${player.team.abbreviation}</span>
-                `;
+                div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 last:border-0 flex justify-between';
+                div.innerHTML = `<span>${player.first_name} ${player.last_name}</span><span class="opacity-30">${player.team.abbreviation}</span>`;
                 div.onclick = () => selectPlayer(player);
                 dropdown.appendChild(div);
             });
-
             dropdown.classList.remove('hidden');
         }
 
-        // 4. Select and show data
-        function selectPlayer(player) {
+        // 2. Global Search logic (Enter Key / Button)
+        async function performGlobalSearch() {
+            const input = document.getElementById('player-search');
+            const query = input.value.trim();
             const dropdown = document.getElementById('suggestions');
-            const searchInput = document.getElementById('player-search');
+            const loading = document.getElementById('loading');
+            
+            if (!query) return;
             
             dropdown.classList.add('hidden');
-            searchInput.value = `${player.first_name} ${player.last_name}`;
-            
+            loading.classList.remove('hidden');
+            document.getElementById('result-area').classList.add('hidden');
+
+            try {
+                // We use the same smart filtering from before to find the best match
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': API_KEY }
+                });
+                const json = await res.json();
+                
+                if (json.data && json.data.length > 0) {
+                    // If multiple results (like searching "Curry"), we find the closest name match
+                    const terms = query.toLowerCase().split(' ');
+                    const bestMatch = json.data.find(p => 
+                        terms.every(t => p.first_name.toLowerCase().includes(t) || p.last_name.toLowerCase().includes(t))
+                    ) || json.data[0];
+
+                    selectPlayer(bestMatch);
+                } else {
+                    alert("No player found with that exact name.");
+                }
+            } catch (err) {
+                alert("Search failed. Check your connection.");
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // 3. Central UI Update
+        function selectPlayer(player) {
+            document.getElementById('suggestions').classList.add('hidden');
+            document.getElementById('player-search').value = `${player.first_name} ${player.last_name}`;
             document.getElementById('result-area').classList.remove('hidden');
+
             document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-            document.getElementById('player-pos').innerText = player.position || "N/A";
+            document.getElementById('player-pos').innerText = player.position || "Prospect";
             document.getElementById('player-team-name').innerText = player.team.full_name;
             document.getElementById('player-team-city').innerText = player.team.city;
-            document.getElementById('p-height').innerText = player.height || "TBD";
-            document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "TBD";
+            document.getElementById('p-height').innerText = player.height || "N/A";
+            document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "N/A";
             document.getElementById('p-conf').innerText = player.team.conference;
 
-            // Change color based on team (Simple version)
-            const teamColors = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33' };
-            const color = teamColors[player.team.abbreviation] || '#00d1ff';
-            document.getElementById('brand-color').style.color = color;
-            document.getElementById('main-card').style.borderColor = color;
+            // Simple team branding
+            const colors = { 'GSW': '#ffc72c', 'LAL': '#552583', 'BOS': '#007a33', 'PHX': '#e56020' };
+            const theme = colors[player.team.abbreviation] || '#00d1ff';
+            document.getElementById('brand-color').style.color = theme;
+            document.getElementById('main-card').style.borderColor = theme;
         }
     </script>
 </body>
