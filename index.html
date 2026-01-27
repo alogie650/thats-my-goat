@@ -3,72 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Scout | 2026 Pro Search</title>
+    <title>NBA Scout | 2026 Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(17, 17, 17, 0.9); border: 1px solid #222; backdrop-filter: blur(10px); }
-        .neon-text { color: #00d1ff; }
-        .suggestion-item:hover { background: rgba(255, 255, 255, 0.05); color: #00d1ff; }
-        input::placeholder { opacity: 0.3; }
+        .glass { background: rgba(17, 17, 17, 0.95); border: 1px solid #222; }
+        .neon-blue { color: #00d1ff; }
+        .suggestion-item:hover { background: #1a1a1a; color: #00d1ff; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">NBA <span id="brand-color" class="neon-text">SCOUT</span></h1>
+            <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic leading-tight">NBA <span id="brand-color" class="neon-blue">SCOUT</span></h1>
+            <div id="api-indicator" class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-30 border border-white/10 px-4 py-1 rounded-full inline-block">System: Online</div>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition shadow-2xl">
+            <div class="glass p-2 rounded-2xl flex gap-2 items-center border-white/10 focus-within:border-[#00d1ff] transition">
                 <input id="player-search" type="text" autocomplete="off"
-                       placeholder="Enter full name (e.g. Brandin Podziemski)" 
+                       placeholder="Search (e.g. Brandin Podziemski)" 
                        class="flex-1 p-4 bg-transparent text-white outline-none font-bold text-lg"
-                       oninput="handleInput(this.value)"
+                       oninput="debouncedSearch(this.value)"
                        onkeydown="if(event.key === 'Enter') performGlobalSearch()">
                 
-                <div id="search-indicator" class="hidden pr-2">
-                    <div class="w-5 h-5 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div>
-                </div>
-
-                <button onclick="performGlobalSearch()" class="bg-white text-black font-bold px-6 py-4 rounded-xl hover:bg-[#00d1ff] transition uppercase text-sm tracking-widest">
-                    Search
-                </button>
+                <div id="spinner" class="hidden pr-2"><div class="w-5 h-5 border-2 border-[#00d1ff] border-t-transparent rounded-full animate-spin"></div></div>
+                <button onclick="performGlobalSearch()" class="bg-white text-black font-black px-6 py-4 rounded-xl hover:bg-[#00d1ff] transition uppercase text-xs">Search</button>
             </div>
-
             <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-50 shadow-2xl border border-white/10"></div>
         </div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-text mb-8 font-bold italic tracking-widest">ANALYZING ROSTER DATA...</div>
+        <div id="loading" class="hidden text-center animate-pulse neon-blue mb-8 font-bold text-lg italic">SYNCHRONIZING WITH LEAGUE DATABASE...</div>
 
         <div id="result-area" class="hidden">
-            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff] shadow-inner">
+            <div id="main-card" class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00d1ff]">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                     <div>
-                        <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
-                        <p id="player-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-80">---</p>
+                        <h2 id="p-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
+                        <p id="p-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-80">---</p>
                     </div>
                     <div class="text-left md:text-right">
-                        <p id="player-team-name" class="text-3xl font-black uppercase italic leading-none">---</p>
-                        <p id="player-team-city" class="opacity-40 uppercase text-[10px] font-bold tracking-widest mt-2">---</p>
+                        <p id="p-team" class="text-3xl font-black uppercase italic leading-none">---</p>
+                        <p id="p-city" class="opacity-40 uppercase text-[10px] font-bold tracking-widest mt-2">---</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
-                        <span id="p-height" class="text-3xl font-black">--</span>
-                    </div>
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Weight</span>
-                        <span id="p-weight" class="text-3xl font-black">--</span>
-                    </div>
-                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5 col-span-2 md:col-span-1">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Conference</span>
-                        <span id="p-conf" class="text-3xl font-black uppercase">--</span>
-                    </div>
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Height</span><span id="p-height" class="text-3xl font-black">--</span></div>
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Weight</span><span id="p-weight" class="text-3xl font-black">--</span></div>
+                    <div class="p-6 bg-black/40 rounded-3xl border border-white/5 col-span-2 md:col-span-1"><span class="block text-[10px] opacity-40 uppercase mb-2 font-bold">Conference</span><span id="p-conf" class="text-3xl font-black uppercase">--</span></div>
                 </div>
             </div>
         </div>
@@ -77,100 +61,111 @@
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
+        let isFetching = false;
 
-        // 1. Suggestions logic (Dropdown)
-        function handleInput(val) {
-            clearTimeout(debounceTimer);
-            const dropdown = document.getElementById('suggestions');
-            if (val.length < 2) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            debounceTimer = setTimeout(() => fetchSuggestions(val), 400);
+        function updateIndicator(msg, color) {
+            const el = document.getElementById('api-indicator');
+            el.innerText = `System: ${msg}`;
+            el.style.color = color;
         }
 
-        async function fetchSuggestions(query) {
-            const indicator = document.getElementById('search-indicator');
-            indicator.classList.remove('hidden');
+        function debouncedSearch(val) {
+            clearTimeout(debounceTimer);
+            if (val.length < 2) {
+                document.getElementById('suggestions').classList.add('hidden');
+                return;
+            }
+            // Increased to 600ms to be extremely safe with the API rate limit
+            debounceTimer = setTimeout(() => fetchPlayers(val, true), 600);
+        }
+
+        async function fetchPlayers(query, isDropdown = false) {
+            if (isFetching) return;
+            isFetching = true;
+            
+            const spinner = document.getElementById('spinner');
+            spinner.classList.remove('hidden');
+
             try {
                 const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
                     headers: { 'Authorization': API_KEY }
                 });
+
+                if (res.status === 429) {
+                    updateIndicator("Rate Limited (Slow Down)", "#ff4444");
+                    return;
+                }
+
+                if (!res.ok) throw new Error(`Error: ${res.status}`);
+                
                 const json = await res.json();
-                renderSuggestions(json.data || []);
-            } catch (err) { console.error(err); } 
-            finally { indicator.classList.add('hidden'); }
+                const players = json.data || [];
+                
+                updateIndicator("Online", "#00d1ff");
+
+                if (isDropdown) {
+                    renderSuggestions(players);
+                } else {
+                    return players;
+                }
+            } catch (err) {
+                console.error(err);
+                updateIndicator("Search Failed", "#ff4444");
+            } finally {
+                isFetching = false;
+                spinner.classList.add('hidden');
+            }
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 5).forEach(player => {
+
+            players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 last:border-0 flex justify-between';
-                div.innerHTML = `<span>${player.first_name} ${player.last_name}</span><span class="opacity-30">${player.team.abbreviation}</span>`;
-                div.onclick = () => selectPlayer(player);
+                div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span class="opacity-30 text-xs">${p.team.abbreviation}</span>`;
+                div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
             dropdown.classList.remove('hidden');
         }
 
-        // 2. Global Search logic (Enter Key / Button)
         async function performGlobalSearch() {
-            const input = document.getElementById('player-search');
-            const query = input.value.trim();
-            const dropdown = document.getElementById('suggestions');
-            const loading = document.getElementById('loading');
-            
+            const query = document.getElementById('player-search').value.trim();
             if (!query) return;
+
+            document.getElementById('suggestions').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
             
-            dropdown.classList.add('hidden');
-            loading.classList.remove('hidden');
-            document.getElementById('result-area').classList.add('hidden');
-
-            try {
-                // We use the same smart filtering from before to find the best match
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': API_KEY }
-                });
-                const json = await res.json();
-                
-                if (json.data && json.data.length > 0) {
-                    // If multiple results (like searching "Curry"), we find the closest name match
-                    const terms = query.toLowerCase().split(' ');
-                    const bestMatch = json.data.find(p => 
-                        terms.every(t => p.first_name.toLowerCase().includes(t) || p.last_name.toLowerCase().includes(t))
-                    ) || json.data[0];
-
-                    selectPlayer(bestMatch);
-                } else {
-                    alert("No player found with that exact name.");
-                }
-            } catch (err) {
-                alert("Search failed. Check your connection.");
-            } finally {
-                loading.classList.add('hidden');
+            const results = await fetchPlayers(query, false);
+            if (results && results.length > 0) {
+                // If the user typed "Brandin Podziemski", look for the best full match
+                const match = results.find(p => 
+                    (p.first_name + " " + p.last_name).toLowerCase().includes(query.toLowerCase())
+                ) || results[0];
+                selectPlayer(match);
+            } else {
+                updateIndicator("No Player Found", "#ff4444");
             }
+            document.getElementById('loading').classList.add('hidden');
         }
 
-        // 3. Central UI Update
-        function selectPlayer(player) {
+        function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = `${player.first_name} ${player.last_name}`;
+            document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             document.getElementById('result-area').classList.remove('hidden');
+            
+            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
+            document.getElementById('p-pos').innerText = p.position || "Prospect";
+            document.getElementById('p-team').innerText = p.team.full_name;
+            document.getElementById('p-city').innerText = p.team.city;
+            document.getElementById('p-height').innerText = p.height || "TBD";
+            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} lbs` : "TBD";
+            document.getElementById('p-conf').innerText = p.team.conference;
 
-            document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-            document.getElementById('player-pos').innerText = player.position || "Prospect";
-            document.getElementById('player-team-name').innerText = player.team.full_name;
-            document.getElementById('player-team-city').innerText = player.team.city;
-            document.getElementById('p-height').innerText = player.height || "N/A";
-            document.getElementById('p-weight').innerText = player.weight ? `${player.weight} lbs` : "N/A";
-            document.getElementById('p-conf').innerText = player.team.conference;
-
-            // Simple team branding
-            const colors = { 'GSW': '#ffc72c', 'LAL': '#552583', 'BOS': '#007a33', 'PHX': '#e56020' };
-            const theme = colors[player.team.abbreviation] || '#00d1ff';
+            const theme = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'PHX': '#e56020' }[p.team.abbreviation] || '#00d1ff';
             document.getElementById('brand-color').style.color = theme;
             document.getElementById('main-card').style.borderColor = theme;
         }
