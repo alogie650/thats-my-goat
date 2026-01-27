@@ -3,162 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT | NBA Scout</title>
+    <title>That's My GOAT | Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Authentic Typewriter Google Font */
         @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
         
         body { 
             background-color: #050505; 
             color: #ffffff; 
             font-family: 'Special Elite', typewriter, serif; 
-            overflow-x: hidden; 
+            overflow-x: hidden;
         }
         
-        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid #222; }
+        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid #222; position: relative; }
         .neon-green { color: #39FF14; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
-        .border-neon { border-color: #39FF14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); }
-        .suggestion-item:hover { background: #1a1a1a; color: #39FF14; }
-        input::placeholder { color: #555; font-style: italic; }
         
-        /* Subtle scanline effect for that retro typewriter/computer feel */
+        /* THE CURSOR LOGIC */
+        .terminal-container { position: relative; display: flex; align-items: center; width: 100%; }
+        
+        #player-search {
+            caret-color: transparent; /* Hide the modern cursor */
+            z-index: 2;
+        }
+
+        #fake-cursor {
+            position: absolute;
+            width: 12px;
+            height: 24px;
+            background-color: #39FF14;
+            animation: blink 1s step-end infinite;
+            pointer-events: none;
+            z-index: 1;
+            display: inline-block;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Scanlines */
         body::before {
             content: " ";
             display: block;
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             z-index: 100;
-            background-size: 100% 4px, 3px 100%;
+            background-size: 100% 4px;
             pointer-events: none;
+            opacity: 0.15;
         }
     </style>
 </head>
-<body class="min-h-screen p-6 md:p-12">
+<body class="min-h-screen p-6 md:p-12" onload="updateCursor()">
 
     <div class="max-w-4xl mx-auto relative z-10">
         <header class="text-center mb-10">
-            <h1 class="text-5xl md:text-7xl font-black mb-2 uppercase tracking-tighter italic">
-                THAT'S MY <span id="brand-color" class="neon-green">GOAT</span>
+            <h1 class="text-5xl md:text-7xl font-black mb-2 uppercase italic">
+                THAT'S MY <span class="neon-green">GOAT</span>
             </h1>
-            <div id="api-indicator" class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40 border border-white/10 px-4 py-1 rounded-sm inline-block">
-                SYS_STATUS: ACTIVE
+            <div class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40 border border-white/10 px-4 py-1 rounded-sm inline-block">
+                SYS_STATUS: READY
             </div>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
             <div class="glass p-2 rounded-lg flex gap-2 items-center border-white/10 focus-within:border-[#39FF14] transition-all">
-                <input id="player-search" type="text" autocomplete="off"
-                       placeholder="TYPE NAME HERE..." 
-                       class="flex-1 p-4 bg-transparent text-white outline-none font-bold text-lg uppercase"
-                       oninput="debouncedSearch(this.value)"
-                       onkeydown="if(event.key === 'Enter') performGlobalSearch()"
-                       onfocus="this.value=''">
-                
-                <div id="spinner" class="hidden pr-2">
-                    <div class="w-5 h-5 border-2 border-[#39FF14] border-t-transparent rounded-full animate-spin"></div>
+                <div class="terminal-container flex-1">
+                    <input id="player-search" type="text" autocomplete="off"
+                           placeholder="" 
+                           class="w-full p-4 bg-transparent text-white outline-none font-bold text-lg uppercase"
+                           oninput="handleInput(this)"
+                           onkeydown="if(event.key === 'Enter') performGlobalSearch()"
+                           onfocus="clearSearch(this)">
+                    <div id="fake-cursor"></div>
                 </div>
-
+                
                 <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-black px-6 py-4 rounded-sm hover:bg-white transition uppercase text-xs tracking-widest">
                     EXECUTE
                 </button>
             </div>
-
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-lg overflow-hidden z-50 shadow-2xl border border-white/10"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-2 glass rounded-lg overflow-hidden z-50 border border-white/10"></div>
         </div>
 
-        <div id="loading-msg" class="hidden text-center animate-pulse neon-green mb-8 font-bold italic tracking-widest uppercase">ACCESSING ARCHIVES...</div>
-
-        <div id="result-area" class="hidden opacity-0 transition-opacity duration-700">
-            <div id="main-card" class="glass p-8 md:p-12 rounded-lg border-l-8 border-neon">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-                    <div>
-                        <h2 id="p-name" class="text-4xl md:text-6xl font-bold uppercase tracking-tight leading-none">---</h2>
-                        <p id="p-pos" class="text-lg uppercase tracking-[0.3em] mt-4 font-bold opacity-60">---</p>
-                    </div>
-                    <div class="text-left md:text-right">
-                        <p id="p-team" class="text-2xl font-bold uppercase italic leading-none text-white">---</p>
-                        <p id="p-city" class="opacity-40 uppercase text-[10px] font-bold tracking-widest mt-2">---</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    <div class="border-b border-white/10 pb-4">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Height</span>
-                        <span id="p-height" class="text-3xl font-bold">--</span>
-                    </div>
-                    <div class="border-b border-white/10 pb-4">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Weight</span>
-                        <span id="p-weight" class="text-3xl font-bold">--</span>
-                    </div>
-                    <div class="border-b border-white/10 pb-4 col-span-2 md:col-span-1">
-                        <span class="block text-[10px] opacity-40 uppercase mb-2 font-bold tracking-widest">Conf</span>
-                        <span id="p-conf" class="text-3xl font-bold uppercase">--</span>
-                    </div>
+        <div id="result-area" class="hidden">
+            <div class="glass p-8 md:p-12 rounded-lg border-l-8 border-[#39FF14]">
+                <h2 id="p-name" class="text-4xl md:text-6xl font-bold uppercase tracking-tight neon-green">---</h2>
+                <p id="p-team" class="text-2xl font-bold uppercase italic mt-2">---</p>
+                <div class="grid grid-cols-2 mt-8 gap-6 border-t border-white/10 pt-6">
+                    <div><span class="block text-[10px] opacity-40 uppercase">Height</span><span id="p-height" class="text-2xl">--</span></div>
+                    <div><span class="block text-[10px] opacity-40 uppercase">Weight</span><span id="p-weight" class="text-2xl">--</span></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'Special Elite'; font-size: 18px; font-weight: bold; text-transform: uppercase;"></span>
+
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        let debounceTimer;
 
-        function updateStatus(msg, color) {
-            const el = document.getElementById('api-indicator');
-            el.innerText = `SYS_STATUS: ${msg}`;
-            el.style.color = color;
+        function handleInput(el) {
+            updateCursor();
+            debouncedSearch(el.value);
         }
 
+        function clearSearch(el) {
+            el.value = '';
+            updateCursor();
+        }
+
+        function updateCursor() {
+            const input = document.getElementById('player-search');
+            const cursor = document.getElementById('fake-cursor');
+            const measurer = document.getElementById('text-measurer');
+            
+            // Measure the width of current text
+            measurer.innerText = input.value || "";
+            const textWidth = measurer.offsetWidth;
+            
+            // 16px is the initial padding-left of the input
+            cursor.style.left = (16 + textWidth) + "px";
+        }
+
+        // --- Standard Logic Below ---
+        let debounceTimer;
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            if (val.length < 2) {
-                document.getElementById('suggestions').classList.add('hidden');
-                return;
-            }
+            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
             debounceTimer = setTimeout(() => fetchPlayers(val, true), 600);
         }
 
         async function fetchPlayers(query, isDropdown = false) {
-            const spinner = document.getElementById('spinner');
-            spinner.classList.remove('hidden');
-
             const terms = query.trim().split(/\s+/);
-            let url = `https://api.balldontlie.io/v1/players?`;
-            
-            if (terms.length > 1) {
-                url += `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}`;
-            } else {
-                url += `search=${encodeURIComponent(terms[0])}`;
-            }
-
+            let url = `https://api.balldontlie.io/v1/players?${terms.length > 1 ? `first_name=${terms[0]}&last_name=${terms[1]}` : `search=${terms[0]}`}`;
             try {
                 const res = await fetch(url, { headers: { 'Authorization': API_KEY } });
-                if (res.status === 429) {
-                    updateStatus("OVERLOADED", "#ff4444");
-                    return null;
-                }
                 const json = await res.json();
-                updateStatus("STABLE", "#39FF14");
                 if (isDropdown) renderSuggestions(json.data || []);
                 return json.data || [];
-            } catch (err) {
-                updateStatus("CRITICAL_ERR", "#ff4444");
-            } finally {
-                spinner.classList.add('hidden');
-            }
+            } catch (err) { console.error(err); }
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 cursor-pointer font-bold border-b border-white/5 flex justify-between items-center transition uppercase';
-                div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span class="opacity-30 text-xs">${p.team.abbreviation}</span>`;
+                div.className = 'suggestion-item p-4 cursor-pointer border-b border-white/5 uppercase';
+                div.innerHTML = `${p.first_name} ${p.last_name}`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -167,37 +162,12 @@
 
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-            document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('loading-msg').classList.remove('hidden');
-            document.getElementById('result-area').classList.add('hidden');
-
             const results = await fetchPlayers(query, false);
-            if (results && results.length > 0) {
-                selectPlayer(results[0]);
-            } else {
-                alert("ENTRY NOT FOUND.");
-            }
-            document.getElementById('loading-msg').classList.add('hidden');
+            if (results && results.length > 0) selectPlayer(results[0]);
         }
 
         function selectPlayer(p) {
-            const resArea = document.getElementById('result-area');
             document.getElementById('suggestions').classList.add('hidden');
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
-            document.getElementById('player-search').blur();
-
-            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
-            document.getElementById('p-pos').innerText = p.position || "N/A";
-            document.getElementById('p-team').innerText = p.team.full_name;
-            document.getElementById('p-city').innerText = p.team.city;
-            document.getElementById('p-height').innerText = p.height || "TBD";
-            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "TBD";
-            document.getElementById('p-conf').innerText = p.team.conference;
-
-            resArea.classList.remove('hidden');
-            setTimeout(() => resArea.style.opacity = "1", 50);
-        }
-    </script>
-</body>
-</html>
+            updateCursor();
+            document.getElementById('p-name').innerText = `${p
