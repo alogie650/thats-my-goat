@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's my GOAT | 2026 Stable</title>
+    <title>That's my GOAT | Limitless Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -11,15 +11,24 @@
         .glass { background: #111; border: 1px solid #222; }
         .neon-green { color: #00ff85; }
         .neon-yellow { color: #ffeb3b; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        #meter-fill { transition: width 0.5s ease; }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
 
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-10">
+        <header class="text-center mb-6">
             <h1 class="text-6xl md:text-8xl font-black mb-2 uppercase tracking-tighter italic">THAT'S MY <span class="neon-yellow">GOAT</span></h1>
-            <p class="text-[10px] tracking-[0.5em] opacity-30 uppercase font-bold text-white">2026 Data Verification Active</p>
+            
+            <div class="max-w-xs mx-auto mt-4">
+                <div class="flex justify-between text-[10px] uppercase tracking-widest opacity-40 mb-1 font-bold">
+                    <span>API Credits</span>
+                    <span id="credit-count">5 / 5</span>
+                </div>
+                <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="meter-fill" class="h-full bg-[#00ff85] w-full"></div>
+                </div>
+            </div>
         </header>
 
         <div class="glass p-4 rounded-3xl mb-8 flex flex-col md:flex-row gap-4">
@@ -33,30 +42,22 @@
             </select>
 
             <div class="flex-1 flex gap-2">
-                <input id="player-search" type="text" placeholder="Or type a name..." 
+                <input id="player-search" type="text" placeholder="Type a name..." 
                        class="flex-1 p-4 rounded-xl bg-black border border-[#333] text-white focus:outline-none focus:border-[#00ff85] font-bold">
-                <button onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-10 py-4 rounded-xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition">
+                <button id="search-btn" onclick="findGoat()" class="bg-[#00ff85] text-black font-black px-10 py-4 rounded-xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition disabled:opacity-20">
                     GO
                 </button>
             </div>
         </div>
 
-        <div id="status-bar" class="text-center mb-8 text-[10px] opacity-40 uppercase tracking-widest">
-            <span id="status-dot" class="status-dot bg-gray-500"></span>
-            System Status: <span id="status-text">Ready</span>
-        </div>
+        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold text-xl uppercase italic">SYNCING WITH NBA NODES...</div>
 
-        <div id="loading" class="hidden text-center animate-pulse neon-green mb-8 font-bold text-xl uppercase italic">FETCHING DATABASE...</div>
-
-        <div id="result-area" class="hidden animate-in fade-in duration-500">
+        <div id="result-area" class="hidden">
             <div class="glass p-8 md:p-12 rounded-[2.5rem] border-t-4 border-[#00ff85]">
                 <div class="flex justify-between items-start mb-10">
                     <div>
                         <h2 id="player-name" class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">---</h2>
                         <p id="player-team" class="neon-green text-sm uppercase tracking-widest mt-4 font-bold">---</p>
-                    </div>
-                    <div class="px-5 py-2 rounded-full border border-neon-yellow/20 bg-neon-yellow/5">
-                        <span id="stat-rank" class="neon-yellow text-[10px] font-black uppercase">---</span>
                     </div>
                 </div>
 
@@ -84,12 +85,32 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
+        const statsCache = {};
+        
+        // Rate Limit Logic (5 requests per 60 seconds)
+        let credits = 5;
+        const creditCountEl = document.getElementById('credit-count');
+        const meterFillEl = document.getElementById('meter-fill');
+        const searchBtn = document.getElementById('search-btn');
 
-        function setStatus(type, msg) {
-            statusText.innerText = msg;
-            statusDot.className = `status-dot ${type === 'ok' ? 'bg-[#00ff85]' : type === 'err' ? 'bg-red-500' : 'bg-yellow-500'}`;
+        // Refill credits slowly
+        setInterval(() => {
+            if (credits < 5) {
+                credits++;
+                updateMeter();
+            }
+        }, 12000); // Refill 1 credit every 12 seconds
+
+        function updateMeter() {
+            creditCountEl.innerText = `${credits} / 5`;
+            meterFillEl.style.width = `${(credits / 5) * 100}%`;
+            searchBtn.disabled = credits < 2; // Need 2 credits for a new search
+            
+            if (credits < 2) {
+                meterFillEl.style.backgroundColor = '#ff4444';
+            } else {
+                meterFillEl.style.backgroundColor = '#00ff85';
+            }
         }
 
         function useDropdown() {
@@ -101,67 +122,63 @@
         }
 
         async function findGoat() {
-            const queryInput = document.getElementById('player-search');
-            const query = queryInput.value.trim();
+            const query = document.getElementById('player-search').value.trim().toLowerCase();
+            if(!query || credits < 2) return;
+
+            // Cache check (doesn't burn credits)
+            if (statsCache[query]) {
+                renderUI(statsCache[query].player, statsCache[query].stats);
+                return;
+            }
+
+            // Burn credits
+            credits -= 2;
+            updateMeter();
+
             const loading = document.getElementById('loading');
             const resultArea = document.getElementById('result-area');
-            
-            if(!query) return;
-
             loading.classList.remove('hidden');
             resultArea.classList.add('hidden');
-            setStatus('loading', 'Searching...');
 
             try {
-                // FETCH PLAYER
                 const pRes = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, {
-                    method: 'GET',
                     headers: { 'Authorization': API_KEY }
                 });
-
-                if (!pRes.ok) throw new Error("API Auth Failed");
-                
                 const pData = await pRes.json();
                 const player = pData.data[0];
 
                 if (!player) {
-                    alert("Player Not Found. Please try searching for just their last name (e.g. 'Curry').");
+                    alert("Player not found.");
                     loading.classList.add('hidden');
-                    setStatus('err', 'Player Not Found');
                     return;
                 }
 
-                // FETCH STATS
                 const sRes = await fetch(`https://api.balldontlie.io/v1/season_averages?season=2025&player_ids[]=${player.id}`, {
-                    method: 'GET',
                     headers: { 'Authorization': API_KEY }
                 });
-                
                 const sData = await sRes.json();
-                const s = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
+                const stats = sData.data[0] || { pts: 0, reb: 0, ast: 0 };
 
-                // UPDATE UI
-                document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
-                document.getElementById('player-team').innerText = player.team?.full_name || "NBA Archive";
-                document.getElementById('stat-ppg').innerText = s.pts || "0.0";
-                document.getElementById('stat-reb').innerText = s.reb || "0.0";
-                document.getElementById('stat-ast').innerText = s.ast || "0.0";
-                
-                document.getElementById('stat-rank').innerText = s.pts > 20 ? "ELITE / GOAT CONTENDER" : "VETERAN IMPACT";
-                document.getElementById('ai-summary').innerText = s.pts > 25 ? 
-                    "Currently operating at a historic efficiency level. In 2026, their dominance on the court is unmatched." : 
-                    "A tactical mastermind on the court whose contribution goes far beyond the raw stat sheet.";
-
-                loading.classList.add('hidden');
-                resultArea.classList.remove('hidden');
-                setStatus('ok', 'Data Synced');
+                // Store in cache
+                statsCache[query] = { player, stats };
+                renderUI(player, stats);
 
             } catch (err) {
                 console.error(err);
+                alert("The NBA servers are too busy. Wait for the meter to turn green!");
+            } finally {
                 loading.classList.add('hidden');
-                setStatus('err', 'Network Timeout');
-                alert("API rate limit hit. Wait 10 seconds and try again!");
             }
+        }
+
+        function renderUI(player, s) {
+            document.getElementById('player-name').innerText = `${player.first_name} ${player.last_name}`;
+            document.getElementById('player-team').innerText = player.team?.full_name || "NBA Legend";
+            document.getElementById('stat-ppg').innerText = s.pts || "0.0";
+            document.getElementById('stat-reb').innerText = s.reb || "0.0";
+            document.getElementById('stat-ast').innerText = s.ast || "0.0";
+            document.getElementById('ai-summary').innerText = s.pts > 20 ? "A generational scorer carrying the franchise." : "A versatile floor general playing winning basketball.";
+            document.getElementById('result-area').classList.remove('hidden');
         }
     </script>
 </body>
