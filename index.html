@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT | Terminal Fix</title>
+    <title>That's My GOAT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -42,12 +42,10 @@
             z-index: 1;
             top: 50%;
             transform: translateY(-50%);
-            transition: left 0.05s linear;
         }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* SQUARE LOADER */
         .loader-sq { width: 18px; height: 18px; border: 1px solid #222; position: relative; }
         .loader-dot { width: 4px; height: 4px; background: #39FF14; position: absolute; animation: sqMove 0.6s infinite linear; }
         @keyframes sqMove {
@@ -98,18 +96,26 @@
         <div id="result-area" class="hidden">
             <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
                 <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider">---</h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em]">---</p>
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
+                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
                     <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DATA_HT</span>
-                        <span id="p-height" class="text-4xl font-bold tracking-widest">--</span>
+                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span>
+                        <span id="p-height" class="text-3xl font-bold tracking-widest"></span>
                     </div>
                     <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DATA_WT</span>
-                        <span id="p-weight" class="text-4xl font-bold tracking-widest">--</span>
+                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span>
+                        <span id="p-weight" class="text-3xl font-bold tracking-widest"></span>
+                    </div>
+                    <div>
+                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span>
+                        <span id="p-div" class="text-3xl font-bold tracking-widest"></span>
+                    </div>
+                    <div>
+                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span>
+                        <span id="p-pos" class="text-3xl font-bold tracking-widest"></span>
                     </div>
                 </div>
             </div>
@@ -123,8 +129,7 @@
         let debounceTimer;
 
         function initTerminal() {
-            const input = document.getElementById('player-search');
-            input.focus();
+            document.getElementById('player-search').focus();
             updateCursor();
         }
 
@@ -136,11 +141,8 @@
 
         function handleInput(el) {
             updateCursor();
-            if (el.value.length >= 2) {
-                document.getElementById('loader-box').classList.remove('hidden');
-            } else {
-                document.getElementById('loader-box').classList.add('hidden');
-            }
+            if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden');
+            else document.getElementById('loader-box').classList.add('hidden');
             debouncedSearch(el.value);
         }
 
@@ -148,10 +150,8 @@
             const input = document.getElementById('player-search');
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
-            
             measurer.textContent = input.value;
-            const textWidth = measurer.offsetWidth;
-            cursor.style.left = (16 + textWidth) + "px";
+            cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function debouncedSearch(val) {
@@ -168,17 +168,13 @@
             const terms = query.trim().split(/\s+/);
             let url = `https://api.balldontlie.io/v1/players?`;
             url += terms.length > 1 ? `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}` : `search=${encodeURIComponent(terms[0])}`;
-
             try {
                 const res = await fetch(url, { headers: { 'Authorization': API_KEY } });
                 const json = await res.json();
                 if (isDropdown) renderSuggestions(json.data || []);
                 return json.data || [];
-            } catch (err) { 
-                console.error("API_ERR", err); 
-            } finally { 
-                document.getElementById('loader-box').classList.add('hidden'); 
-            }
+            } catch (err) { console.error(err); }
+            finally { document.getElementById('loader-box').classList.add('hidden'); }
         }
 
         function renderSuggestions(players) {
@@ -195,6 +191,15 @@
             dropdown.classList.remove('hidden');
         }
 
+        async function typeWriter(text, elementId, speed = 15) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = "";
+            for (let i = 0; i < text.length; i++) {
+                el.innerHTML += text.charAt(i);
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
             if (!query) return;
@@ -204,7 +209,7 @@
             document.getElementById('loader-box').classList.add('hidden');
         }
 
-        function selectPlayer(p) {
+        async function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
@@ -215,7 +220,7 @@
             };
             const themeColor = colors[p.team.abbreviation] || '#39FF14';
 
-            // Apply Theme
+            document.getElementById('result-area').classList.remove('hidden');
             document.getElementById('goat-text').style.color = themeColor;
             document.getElementById('player-card').style.borderColor = themeColor;
             document.getElementById('search-btn').style.backgroundColor = themeColor;
@@ -223,12 +228,16 @@
             document.getElementById('loader-dot').style.backgroundColor = themeColor;
             document.getElementById('p-name').style.color = themeColor;
 
-            document.getElementById('p-name').innerText = `${p.first_name} ${p.last_name}`;
-            document.getElementById('p-team').innerText = p.team.full_name;
-            document.getElementById('p-height').innerText = p.height || "N/A";
-            document.getElementById('p-weight').innerText = p.weight ? `${p.weight} LBS` : "N/A";
+            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER', 'G-F': 'GUARD-FORWARD', 'F-G': 'FORWARD-GUARD', 'F-C': 'FORWARD-CENTER', 'C-F': 'CENTER-FORWARD' };
+            const fullPos = posMap[p.position] || p.position || "N/A";
+
+            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
+            await typeWriter(p.team.full_name, 'p-team', 10);
             
-            document.getElementById('result-area').classList.remove('hidden');
+            typeWriter(p.height || "N/A", 'p-height', 15);
+            typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
+            typeWriter(p.team.division || "N/A", 'p-div', 15);
+            typeWriter(fullPos, 'p-pos', 15);
         }
     </script>
 </body>
