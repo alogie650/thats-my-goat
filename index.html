@@ -7,17 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; overflow-x: hidden; }
-        .solid-box { background: #000; border: 2px solid #333; position: relative; transition: border-color 0.4s ease; }
-        .dynamic-neon { color: #39FF14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); letter-spacing: 0.15em; }
+        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 0.15em; overflow-x: hidden; }
+        .solid-box { background: #000; border: 2px solid #333; position: relative; }
+        .dynamic-neon { color: #39FF14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); }
         .gold-glow { color: #FFD700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); }
         #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; background: transparent; }
-        #player-search::placeholder { color: #222; }
-        #fake-cursor { position: absolute; width: 14px; height: 24px; background-color: #39FF14; animation: blink 0.6s step-end infinite; pointer-events: none; z-index: 1; top: 50%; transform: translateY(-50%); transition: left 0.1s ease-out; }
+        #fake-cursor { position: absolute; width: 14px; height: 24px; background-color: #39FF14; animation: blink 0.6s step-end infinite; pointer-events: none; z-index: 1; top: 50%; transform: translateY(-50%); left: 16px; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .suggestion-item { border-bottom: 1px solid #111; transition: all 0.2s; }
-        .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
-        .goat-blurb { border-top: 2px dashed #333; margin-top: 2rem; padding-top: 1.5rem; color: #aaa; line-height: 1.4; }
+        .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; }
+        .suggestion-item:hover { background: #39FF14; color: #000; }
+        .loading-text { color: #555; font-size: 14px; padding: 10px; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12" onload="initTerminal()">
@@ -36,9 +36,8 @@
                            placeholder="ENTER PLAYER NAME"
                            class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
                            oninput="handleInput(this)"
-                           onkeydown="handleKeyDown(event)"
-                           onfocus="this.value=''">
-                    <div id="fake-cursor" style="left: 16px;"></div>
+                           onkeydown="if(event.key === 'Enter') performGlobalSearch()">
+                    <div id="fake-cursor"></div>
                 </div>
                 <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-10 py-4 hover:bg-white transition-colors text-xl tracking-widest">SEARCH</button>
             </div>
@@ -48,8 +47,8 @@
         <div id="result-area" class="hidden">
             <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
                 <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider"></h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em]"></p>
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
+                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-t-2 border-white/10 pt-10">
@@ -60,19 +59,13 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 pt-6 border-t border-white/5">
-                    <div>
-                        <span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS</span>
-                        <span id="p-rings" class="text-4xl font-bold gold-glow"></span>
-                    </div>
-                    <div>
-                        <span class="block text-sm dynamic-neon mb-1 tracking-[0.4em]">ACTIVE SINCE</span>
-                        <span id="p-active" class="text-2xl font-bold tracking-widest"></span>
-                    </div>
+                    <div><span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS</span><span id="p-rings" class="text-4xl font-bold gold-glow"></span></div>
+                    <div><span class="block text-sm dynamic-neon mb-1 tracking-[0.4em]">ACTIVE SINCE</span><span id="p-active" class="text-2xl font-bold tracking-widest"></span></div>
                 </div>
 
-                <div class="goat-blurb">
+                <div class="mt-8 pt-6 border-t-2 border-dashed border-white/10">
                     <span class="block text-3xl dynamic-neon mb-3 tracking-[0.4em] font-bold">GOAT CASE:</span>
-                    <p id="p-case" class="text-xl italic leading-relaxed"></p>
+                    <p id="p-case" class="text-xl italic leading-relaxed text-gray-400"></p>
                 </div>
             </div>
         </div>
@@ -82,80 +75,56 @@
 
     <script>
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f'; 
-        const CURRENT_YEAR = 2026;
         let debounceTimer;
 
-        const RING_REGISTRY = {
-            "James": 4, "Curry": 4, "Thompson": 4, "Green": 4, "Durant": 2, "Leonard": 2, "Holiday": 2, "Caldwell-Pope": 2,
-            "Antetokounmpo": 1, "Jokic": 1, "Davis": 1, "Irving": 1, "Tatum": 1, "Brown": 1, "White": 1, "Horford": 1, 
-            "Murray": 1, "Gordon": 1, "Looney": 3, "McGee": 3, "Lowry": 1, "Siakam": 1, "Middleton": 1, "Lopez": 1, "Caruso": 2
-        };
-
-        const YEAR_REGISTRY = {
-            "James": 2003, "Paul": 2005, "Lowry": 2006, "Durant": 2007, "Horford": 2007, "Westbrook": 2008, "Love": 2008,
-            "Curry": 2009, "Harden": 2009, "DeRozan": 2009, "George": 2010, "Irving": 2011, "Leonard": 2011, "Butler": 2011,
-            "Thompson": 2011, "Davis": 2012, "Lillard": 2012, "Green": 2012, "Beal": 2012, "Antetokounmpo": 2013, "Gobert": 2013,
-            "Jokic": 2014, "Embiid": 2014, "Wiggins": 2014, "LaVine": 2014, "Booker": 2015, "Towns": 2015, "Porzingis": 2015,
-            "Simmons": 2016, "Brown": 2016, "Ingram": 2016, "Murray": 2016, "Sabanis": 2016, "Tatum": 2017, "Fox": 2017, "Mitchell": 2017,
-            "Adebayo": 2017, "Doncic": 2018, "Young": 2018, "SGA": 2018, "Jackson": 2018, "Brunson": 2018, "Morant": 2019, "Williamson": 2019,
-            "Garland": 2019, "Edwards": 2020, "Ball": 2020, "Haliburton": 2020, "Maxey": 2020, "Barnes": 2021, "Cunningham": 2021,
-            "Mobley": 2021, "Banchero": 2022, "Holmgren": 2022, "Wembanyama": 2023
-        };
-
-        const LEGEND_BLURBS = {
-            "James": "THE ALL-TIME SCORING KING. A MASTER OF LONGEVITY WHO HAS DOMINATED THREE DIFFERENT DECADES. HIS BASKETBALL IQ REMAINS THE HIGHEST THE LEAGUE HAS EVER SEEN.",
-            "Curry": "THE GREATEST SHOOTER IN HISTORY. HIS 'GRAVITY' REWROTE THE MODERN OFFENSIVE PLAYBOOK. THE ONLY UNANIMOUS MVP FOR A REASON.",
-            "Jokic": "A TRIPLE-DOUBLE MACHINE IN A 7-FOOT FRAME. HE HAS REDEFINED THE CENTER POSITION AS A PRIMARY PLAYMAKER AND EFFICIENCY GOD.",
-            "Doncic": "A SAVANT-LEVEL SCORER AND PASSMAKER. HE MANIPULATES DEFENSES AT HIS OWN PACE, MAKING THE ELITE LOOK ORDINARY.",
-            "Durant": "THE MOST EFFORTLESS SCORER THE WING HAS EVER SEEN. A 7-FOOTER WITH THE TOUCH OF A GUARD. UNGUARDABLE AT ANY LEVEL.",
-            "Wembanyama": "THE 'ALIEN.' A DEFENSIVE ANOMALY WITH A PERIMETER BAG. THE MOST ANTICIPATED PROSPECT SINCE LEBRON FOR A REASON.",
-            "Antetokounmpo": "A PHYSICAL FORCE UNLIKE ANY OTHER. THE GREEK FREAK COMBINES DPOY-LEVEL DEFENSE WITH UNSTOPPABLE INTERIOR SCORING.",
-            "Embiid": "THE ULTIMATE MODERN CENTER. HE PAIRS OLD-SCHOOL BACK-TO-THE-BASKET POWER WITH ELITE MID-RANGE AND FACE-UP SKILLS."
-        };
+        // LOCAL REGISTRY (Prevents API throttling for main players)
+        const LOCAL_DB = [
+            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL", division: "Pacific" }, height: "6-9", weight: "250", position: "F", rings: 4, rookie: 2003, blurb: "THE ALL-TIME SCORING KING. A MASTER OF LONGEVITY." },
+            { first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State Warriors", abbreviation: "GSW", division: "Pacific" }, height: "6-2", weight: "185", position: "G", rings: 4, rookie: 2009, blurb: "THE GREATEST SHOOTER IN HISTORY. HE CHANGED THE GAME." },
+            { first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN", division: "Northwest" }, height: "6-11", weight: "284", position: "C", rings: 1, rookie: 2014, blurb: "A TRIPLE-DOUBLE MACHINE. THE BEST PASSING CENTER EVER." }
+        ];
 
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
 
         function updateCursor() {
             const input = document.getElementById('player-search');
-            const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
             measurer.textContent = input.value || "";
-            cursor.style.left = (16 + measurer.offsetWidth) + "px";
+            document.getElementById('fake-cursor').style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function handleInput(el) { 
             updateCursor(); 
-            if (el.value.length >= 2) debouncedSearch(el.value);
-            else document.getElementById('suggestions').classList.add('hidden');
-        }
-
-        function handleKeyDown(e) {
-            if (e.key === 'Enter') performGlobalSearch();
-            setTimeout(updateCursor, 10);
-        }
-
-        function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
+            if (el.value.length < 2) { 
+                document.getElementById('suggestions').classList.add('hidden'); 
+                return; 
+            }
+            // Check Local DB First
+            const localMatch = LOCAL_DB.filter(p => (p.first_name + p.last_name).toLowerCase().includes(el.value.toLowerCase()));
+            if (localMatch.length > 0) { renderSuggestions(localMatch); return; }
+
+            // API Throttle Protection
+            debounceTimer = setTimeout(() => fetchPlayers(el.value), 500); 
         }
 
-        async function fetchPlayers(query, isDropdown = false) {
-            const terms = query.trim().split(/\s+/);
-            let url = `https://api.balldontlie.io/v1/players?`;
-            url += terms.length > 1 ? `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}` : `search=${encodeURIComponent(terms[0])}`;
+        async function fetchPlayers(query) {
+            const dropdown = document.getElementById('suggestions');
+            dropdown.innerHTML = '<div class="loading-text">CONNECTING TO DATABASE...</div>';
+            dropdown.classList.remove('hidden');
+
             try {
-                const res = await fetch(url, { headers: { 'Authorization': API_KEY } });
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
                 const json = await res.json();
-                if (isDropdown) renderSuggestions(json.data || []);
-                return json.data || [];
-            } catch (err) { console.error(err); }
+                renderSuggestions(json.data || []);
+            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500 text-sm">RATE LIMIT EXCEEDED. WAIT 10S.</div>'; }
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 8).forEach(p => {
+            players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-4 uppercase font-bold';
                 div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-40 ml-2">// ${p.team.abbreviation}</span>`;
@@ -170,39 +139,21 @@
             el.innerHTML = "";
             for (let i = 0; i < text.length; i++) {
                 el.innerHTML += text.charAt(i);
-                await new Promise(resolve => setTimeout(resolve, speed));
+                await new Promise(r => setTimeout(r, speed));
             }
-        }
-
-        function formatPosition(pos) {
-            if (!pos) return "N/A";
-            return pos.replace(/G/g, "GUARD").replace(/F/g, "FORWARD").replace(/C/g, "CENTER").replace("-", " / ");
-        }
-
-        function getActiveString(lastName) {
-            const rookieYear = YEAR_REGISTRY[lastName] || 2020; // Default fallback
-            const seasons = CURRENT_YEAR - rookieYear;
-            return `${rookieYear} (${seasons} SEASONS)`;
-        }
-
-        async function performGlobalSearch() {
-            const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-            const results = await fetchPlayers(query, false);
-            if (results && results.length > 0) selectPlayer(results[0]);
         }
 
         async function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
+            document.getElementById('player-search').value = ""; // Clear for next search
             updateCursor();
 
             document.getElementById('result-area').classList.remove('hidden');
-            document.getElementById('p-name').style.color = '#39FF14';
-
-            const ringCount = RING_REGISTRY[p.last_name] || 0;
-            const ringDisplay = ringCount > 0 ? "🏆".repeat(ringCount) : "0";
-            const activeDisplay = getActiveString(p.last_name);
+            
+            // Format Data
+            const rings = p.rings || (p.last_name === "James" || p.last_name === "Curry" ? 4 : 0);
+            const ringDisplay = rings > 0 ? "🏆".repeat(rings) : "0";
+            const rookie = p.rookie || 2020;
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
             await typeWriter(p.team.full_name, 'p-team', 10);
@@ -210,13 +161,11 @@
             typeWriter(p.height || "N/A", 'p-height', 15);
             typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
             typeWriter(p.team.division || "N/A", 'p-div', 15);
-            typeWriter(formatPosition(p.position), 'p-pos', 15);
+            typeWriter(p.position || "N/A", 'p-pos', 15);
             
             typeWriter(ringDisplay, 'p-rings', 50);
-            typeWriter(activeDisplay, 'p-active', 20);
-            
-            const blurb = LEGEND_BLURBS[p.last_name] || `A UNIQUE TALENT IN THE ${p.team.abbreviation} ROTATION. HIS IMPACT CONTINUES TO DEFINE THE MODERN ERA OF POSITIONLESS BASKETBALL.`;
-            typeWriter(blurb, 'p-case', 8);
+            typeWriter(`${rookie} (${2026 - rookie} SEASONS)`, 'p-active', 20);
+            typeWriter(p.blurb || `A VITAL ASSET TO THE ${p.team.abbreviation} SQUAD.`, 'p-case', 8);
         }
     </script>
 </body>
