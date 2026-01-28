@@ -16,6 +16,7 @@
             margin: 0;
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            overflow-x: hidden;
         }
         
         .solid-box { background: #000; border: 2px solid #333; position: relative; transition: border-color 0.4s ease; }
@@ -27,12 +28,7 @@
         }
         
         #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; }
-        
-        /* Muted Gray Placeholder */
-        #player-search::placeholder {
-            color: #444;
-            opacity: 1;
-        }
+        #player-search::placeholder { color: #444; opacity: 1; }
 
         #fake-cursor {
             position: absolute;
@@ -56,14 +52,6 @@
             50% { top: 14px; left: 14px; }
             75% { top: 14px; left: 0; }
             100% { top: 0; left: 0; }
-        }
-
-        .curry-headshot {
-            width: 140px;
-            height: 140px;
-            image-rendering: pixelated;
-            border: 2px solid #333;
-            background: #050505;
         }
 
         .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
@@ -98,28 +86,21 @@
                     SEARCH
                 </button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14] flex flex-col md:flex-row justify-between items-center md:items-start">
-                <div class="flex-1 w-full">
-                    <div class="mb-10">
-                        <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
-                        <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
-                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-3xl font-bold tracking-widest"></span></div>
-                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-3xl font-bold tracking-widest"></span></div>
-                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-3xl font-bold tracking-widest"></span></div>
-                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-3xl font-bold tracking-widest"></span></div>
-                    </div>
+            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
+                <div class="mb-10">
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
+                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
                 </div>
-
-                <div id="avatar-container" class="hidden mt-10 md:mt-0 md:ml-12 shrink-0">
-                    <img id="player-avatar" src="" class="curry-headshot" alt="IMG_ID_CURRY">
-                    <span class="block text-center text-xs opacity-30 mt-2 tracking-[0.3em]">BIO_VISUAL</span>
+                
+                <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
+                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-3xl font-bold tracking-widest"></span></div>
+                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-3xl font-bold tracking-widest"></span></div>
+                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-3xl font-bold tracking-widest"></span></div>
+                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-3xl font-bold tracking-widest"></span></div>
                 </div>
             </div>
         </div>
@@ -133,31 +114,34 @@
 
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
         
+        // FIX: Now clears ANY text on focus so user can start a new search instantly
         function clearSearch(el) { 
-            // Only clear if the user hasn't typed anything yet or it's a previous result
-            if(el.value === "ENTER PLAYER NAME") el.value = '';
+            el.value = '';
             document.getElementById('suggestions').classList.add('hidden'); 
             updateCursor(); 
         }
 
         function handleInput(el) { 
             updateCursor(); 
-            if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden'); 
-            debouncedSearch(el.value); 
+            if (el.value.length >= 2) {
+                document.getElementById('loader-box').classList.remove('hidden');
+                debouncedSearch(el.value);
+            } else {
+                document.getElementById('suggestions').classList.add('hidden');
+                document.getElementById('loader-box').classList.add('hidden');
+            }
         }
 
         function updateCursor() {
             const input = document.getElementById('player-search');
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
-            // If empty, use placeholder length to position cursor if needed, or pin to start
             measurer.textContent = input.value || "";
             cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
             debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
         }
 
@@ -197,11 +181,15 @@
             }
         }
 
+        // FIX: Force suggestion box to hide when performing a full search
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
             if (!query) return;
+            document.getElementById('suggestions').classList.add('hidden');
+            document.getElementById('loader-box').classList.remove('hidden');
             const results = await fetchPlayers(query, false);
             if (results && results.length > 0) selectPlayer(results[0]);
+            document.getElementById('loader-box').classList.add('hidden');
         }
 
         async function selectPlayer(p) {
@@ -216,16 +204,6 @@
             const themeColor = colors[p.team.abbreviation] || '#39FF14';
 
             document.getElementById('result-area').classList.remove('hidden');
-            
-            const avatarContainer = document.getElementById('avatar-container');
-            const avatarImg = document.getElementById('player-avatar');
-            if (p.first_name.toLowerCase() === 'stephen' && p.last_name.toLowerCase() === 'curry') {
-                avatarImg.src = "https://googleusercontent.com/image_generation_content/5";
-                avatarContainer.classList.remove('hidden');
-            } else {
-                avatarContainer.classList.add('hidden');
-            }
-
             document.getElementById('goat-text').style.color = themeColor;
             document.getElementById('player-card').style.borderColor = themeColor;
             document.getElementById('search-btn').style.backgroundColor = themeColor;
