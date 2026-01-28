@@ -17,21 +17,20 @@
         .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; transition: 0.2s; }
         .suggestion-item:hover { background: #39FF14; color: #000; }
         .analysis-text { line-height: 1.6; color: #ccc; }
-        .stat-tag { font-size: 0.7rem; border: 1px solid #333; padding: 2px 6px; margin-right: 5px; color: #39FF14; }
+        .stat-tag { font-size: 0.85rem; border: 1px solid #39FF14; padding: 4px 10px; margin-right: 8px; margin-bottom: 8px; color: #39FF14; display: inline-block; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-12" onload="initTerminal()">
 
     <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-12">
-            <h1 class="text-6xl md:text-8xl font-normal mb-2 tracking-tighter">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
-            <p class="opacity-40 text-sm tracking-[0.5em]">V6.0 // GLOBAL_REGISTRY_ACTIVE</p>
+        <header class="text-center mb-10">
+            <h1 class="text-7xl md:text-9xl font-normal tracking-tighter">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-10">
             <div class="solid-box p-1 flex items-center border-white/20 focus-within:border-[#39FF14]">
                 <div class="relative flex-1 flex items-center h-[60px]">
-                    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="INITIATE SEARCH..."
+                    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="SEARCH PLAYER..."
                            class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
                            oninput="handleInput(this)" onkeydown="if(event.key === 'Enter') performGlobalSearch()">
                     <div id="fake-cursor"></div>
@@ -47,29 +46,34 @@
                         <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-2"></h2>
                         <p id="p-team" class="text-2xl text-white opacity-70 tracking-widest"></p>
                     </div>
-                    <div class="text-right">
-                        <span class="block text-xs opacity-40 mb-1">CHAMPIONSHIPS</span>
-                        <div id="p-rings" class="text-3xl gold-glow"></div>
+                    <div class="text-left md:text-right min-w-[150px]">
+                        <div class="mb-4">
+                            <span class="block text-[10px] opacity-40 mb-1">CHAMPIONSHIPS</span>
+                            <div id="p-rings" class="text-2xl gold-glow tracking-widest"></div>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] opacity-40 mb-1">LEAGUE MVPS</span>
+                            <div id="p-mvps" class="text-2xl text-[#39FF14] tracking-widest"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-white/5 p-4 border border-white/10">
-                    <div><span class="block text-[10px] opacity-40">HT/WT</span><span id="p-phys" class="text-lg font-bold"></span></div>
-                    <div><span class="block text-[10px] opacity-40">POSITION</span><span id="p-pos" class="text-lg font-bold"></span></div>
-                    <div><span class="block text-[10px] opacity-40">EXP</span><span id="p-exp" class="text-lg font-bold"></span></div>
-                    <div><span class="block text-[10px] opacity-40">STATUS</span><span class="text-lg font-bold text-[#39FF14]">LEGENDARY</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white/5 p-4 border border-white/10">
+                    <div><span class="block text-[10px] opacity-40 uppercase">Height / Weight</span><span id="p-phys" class="text-lg font-bold"></span></div>
+                    <div><span class="block text-[10px] opacity-40 uppercase">Position</span><span id="p-pos" class="text-lg font-bold"></span></div>
+                    <div><span class="block text-[10px] opacity-40 uppercase">Active Since</span><span id="p-exp" class="text-lg font-bold"></span></div>
                 </div>
 
-                <div class="mb-8">
+                <div class="mb-10">
                     <h3 class="text-[#39FF14] text-2xl font-bold mb-4 flex items-center">
                         <span class="mr-3">▶</span> THE GOAT CASE
                     </h3>
-                    <div id="p-case" class="analysis-text text-lg italic md:text-xl"></div>
+                    <div id="p-case" class="analysis-text text-lg italic md:text-xl border-l-2 border-white/10 pl-4"></div>
                 </div>
 
-                <div class="border-t border-white/10 pt-6">
-                    <span class="block text-[10px] opacity-40 mb-3">STATISTICAL_SIGNATURE</span>
-                    <div id="p-sig" class="flex flex-wrap gap-2"></div>
+                <div class="border-t border-white/10 pt-8">
+                    <span class="block text-xl text-[#39FF14] font-bold mb-4">STATISTICAL_SIGNATURE_DATA:</span>
+                    <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
         </div>
@@ -81,25 +85,24 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
 
-        // HIGH-DENSITY ANALYSIS DATABASE
         const LOCAL_DB = [
             { 
-                first_name: "LeBron", last_name: "James", team: { full_name: "LA Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "F", rings: 4, rookie: 2003, 
-                blurb: "THE ULTIMATE BASKETBALL ARCHETYPE. LEBRON'S CASE RESTS ON THE UNPRECEDENTED INTERSECTION OF PEAK DOMINANCE AND SUPERNATURAL LONGEVITY. HE IS THE ONLY ENTITY IN HISTORY TO RECORD 40K POINTS, 11K REBOUNDS, AND 11K ASSISTS. WHILE OTHERS HAD HIGHER PEAKS (JORDAN) OR MORE RINGS (RUSSELL), NO ONE HAS CONTROLLED THE GEOMETRY OF THE COURT FOR TWO DECADES ACROSS THREE DIFFERENT ERAS. HE IS THE SYSTEM ITSELF.",
+                first_name: "LeBron", last_name: "James", team: { full_name: "LA Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "F", rings: 4, mvps: 4, rookie: 2003, 
+                blurb: "THE ULTIMATE BASKETBALL ARCHETYPE. LEBRON'S CASE RESTS ON THE UNPRECEDENTED INTERSECTION OF PEAK DOMINANCE AND SUPERNATURAL LONGEVITY. HE IS THE ONLY ENTITY IN HISTORY TO RECORD 40K POINTS, 11K REBOUNDS, AND 11K ASSISTS. WHILE OTHERS HAD HIGHER PEAKS OR MORE RINGS, NO ONE HAS CONTROLLED THE GEOMETRY OF THE COURT FOR TWO DECADES ACROSS THREE DIFFERENT ERAS. HE IS THE SYSTEM ITSELF.",
                 sigs: ["40K SCORING CLUB", "ALL-TIME VORP LEADER", "8 CONSECUTIVE FINALS", "PER: 27.1"]
             },
             { 
-                first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State", abbreviation: "GSW" }, height: "6-2", weight: "185", position: "G", rings: 4, rookie: 2009, 
+                first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State", abbreviation: "GSW" }, height: "6-2", weight: "185", position: "G", rings: 4, mvps: 2, rookie: 2009, 
                 blurb: "THE GREATEST OFFENSIVE RADIUS IN HUMAN HISTORY. CURRY DIDN'T JUST PLAY THE GAME; HE BROKE ITS MATHEMATICAL FOUNDATION. HIS 'GRAVITY' REWRITES DEFENSIVE COORDINATES, FORCING OPPONENTS TO GUARD THE LOGO, THEREBY CREATING 4-ON-3 ADVANTAGES FOR TEAMMATES WITHOUT EVEN TOUCHING THE BALL. HE IS THE FIRST UNANIMOUS MVP FOR A REASON: HE RENDERED TRADITIONAL BASKETBALL OBSOLETE.",
                 sigs: ["4K+ 3PM", "91% FT ALL-TIME", "UNANIMOUS MVP", "OFF-BALL ELITE"]
             },
             { 
-                first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN" }, height: "6-11", weight: "284", position: "C", rings: 1, rookie: 2014, 
-                blurb: "THE MOST EFFICIENT OFFENSIVE ENGINE EVER ASSEMBLED. JOKIC HAS REDEFINED THE CENTER POSITION AS A POINT-GUARD/POST-GOD HYBRID. PER THE ADVANCED METRICS (BPM, PER, WS/48), JOKIC OPERATES AT A STATISTICAL STRATOSPHERE PREVIOUSLY ONLY OCCUPIED BY PEAK JORDAN AND WILT. HE IS THE FIRST PLAYER TO LEAD A POSTSEASON IN TOTAL POINTS, REBOUNDS, AND ASSISTS, PROVING HE IS THE APEX OF MODERN CEREBRAL BASKETBALL.",
+                first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN" }, height: "6-11", weight: "284", position: "C", rings: 1, mvps: 3, rookie: 2014, 
+                blurb: "THE MOST EFFICIENT OFFENSIVE ENGINE EVER ASSEMBLED. JOKIC HAS REDEFINED THE CENTER POSITION AS A POINT-GUARD/POST-GOD HYBRID. PER THE ADVANCED METRICS, JOKIC OPERATES AT A STATISTICAL STRATOSPHERE PREVIOUSLY ONLY OCCUPIED BY PEAK JORDAN AND WILT. HE IS THE FIRST PLAYER TO LEAD A POSTSEASON IN TOTAL POINTS, REBOUNDS, AND ASSISTS, PROVING HE IS THE APEX OF MODERN CEREBRAL BASKETBALL.",
                 sigs: ["TRIPLE-DOUBLE MACHINE", "HIGHEST SINGLE-SEASON PER", "PASSING SAVANT", "PER: 28.1"]
             },
             {
-                first_name: "Kevin", last_name: "Durant", team: { full_name: "Phoenix Suns", abbreviation: "PHX" }, height: "6-11", weight: "240", position: "F", rings: 2, rookie: 2007,
+                first_name: "Kevin", last_name: "Durant", team: { full_name: "Phoenix Suns", abbreviation: "PHX" }, height: "6-11", weight: "240", position: "F", rings: 2, mvps: 1, rookie: 2007,
                 blurb: "THE MOST UNGUARDABLE SCORING PROFILE IN THE ANNALS OF THE NBA. DURANT REPRESENTS THE FINAL EVOLUTION OF THE SCORER—A SEVEN-FOOTER WITH THE HANDLE OF A POINT GUARD AND A MID-RANGE JUMPER THAT IS STATISTICAL AUTOMATION. HIS EFFICIENCY AT VOLUME IS UNMATCHED IN THE MODERN ERA. HE IS THE ULTIMATE 'PLUG-AND-PLAY' GOAT; REGARDLESS OF THE SYSTEM, HE IS THE INESCAPABLE SOLUTION.",
                 sigs: ["4X SCORING CHAMP", "50-40-90 CLUB", "2X FINALS MVP", "ELITE RIM PROTECTOR"]
             }
@@ -133,7 +136,7 @@
                 const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
                 const json = await res.json();
                 renderSuggestions(json.data || []);
-            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500">API_ERROR: RATE_LIMIT_EXCEEDED</div>'; }
+            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500">API_ERROR</div>'; }
         }
 
         function renderSuggestions(players) {
@@ -150,7 +153,7 @@
             dropdown.classList.remove('hidden');
         }
 
-        async function typeWriter(text, elementId, speed = 15) {
+        async function typeWriter(text, elementId, speed = 10) {
             const el = document.getElementById(elementId);
             el.innerHTML = "";
             for (let i = 0; i < text.length; i++) {
@@ -161,20 +164,23 @@
 
         async function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = "";
+            const searchInput = document.getElementById('player-search');
+            searchInput.value = "";
+            searchInput.focus();
             updateCursor();
+
             document.getElementById('result-area').classList.remove('hidden');
             
-            // Format Basic Data
             const rings = p.rings || 0;
-            const ringText = rings > 0 ? "🏆".repeat(rings) : "0 (PENDING)";
-            const rookie = p.rookie || 2021;
+            const mvps = p.mvps || 0;
+            const ringIcons = rings > 0 ? "🏆".repeat(rings) : "NONE";
+            const mvpIcons = mvps > 0 ? "⭐".repeat(mvps) : "NONE";
+            const rookie = p.rookie || 2022;
             const position = p.position.length > 3 ? p.position : (p.position === "G" ? "GUARD" : p.position === "F" ? "FORWARD" : "CENTER");
 
-            // Build Signature Tags
             const sigContainer = document.getElementById('p-sig');
             sigContainer.innerHTML = '';
-            const sigs = p.sigs || ["ALL-STAR CALIBER", "CORE ROTATION", "POSTSEASON THREAT"];
+            const sigs = p.sigs || ["ALL-STAR CALIBER", "CORE ROTATION", "POSTSEASON THREAT", "TWO-WAY IMPACT"];
             sigs.forEach(s => {
                 const span = document.createElement('span');
                 span.className = 'stat-tag';
@@ -185,13 +191,26 @@
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
             await typeWriter(p.team.full_name, 'p-team', 10);
             
-            document.getElementById('p-rings').innerHTML = ringText;
+            document.getElementById('p-rings').innerHTML = ringIcons;
+            document.getElementById('p-mvps').innerHTML = mvpIcons;
             document.getElementById('p-phys').innerText = `${p.height || "N/A"} / ${p.weight ? p.weight + ' LBS' : "N/A"}`;
             document.getElementById('p-pos').innerText = position;
-            document.getElementById('p-exp').innerText = `${2026 - rookie} SEASONS`;
+            document.getElementById('p-exp').innerText = `${rookie} (${2026 - rookie} SEASONS)`;
             
             const caseText = p.blurb || `THE CASE FOR ${p.last_name} IS BUILT ON RAW IMPACT AND TACTICAL FLEXIBILITY. WHILE THE MEDIA FOCUSES ON THE STARS, ${p.last_name} REPRESENTS THE FOUNDATIONAL EXCELLENCE THAT SUSTAINS A WINNING CULTURE. IN AN ERA OF CONSTANT TURNOVER, HIS CONSISTENCY IS THE TRUE MEASURE OF GREATNESS.`;
             await typeWriter(caseText, 'p-case', 5);
+        }
+
+        async function performGlobalSearch() {
+            const query = document.getElementById('player-search').value.trim();
+            if (!query) return;
+            const local = LOCAL_DB.find(p => (p.first_name + " " + p.last_name).toLowerCase() === query.toLowerCase());
+            if (local) selectPlayer(local);
+            else {
+                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
+                const json = await res.json();
+                if (json.data && json.data.length > 0) selectPlayer(json.data[0]);
+            }
         }
     </script>
 </body>
