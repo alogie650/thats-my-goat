@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT</title>
+    <title>That's My GOAT // Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         :root { --team-color: #39FF14; }
         body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; }
         .solid-box { background: #000; border: 2px solid #333; position: relative; }
-        .dynamic-neon { color: var(--team-color); text-shadow: 0 0 8px var(--team-color); transition: all 0.5s ease; }
+        .dynamic-neon { color: var(--team-color); text-shadow: 0 0 10px var(--team-color); transition: all 0.4s ease; }
         .gold-glow { color: #FFD700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); }
         #player-search { caret-color: transparent; background: transparent; letter-spacing: 0.15em; }
-        #fake-cursor { position: absolute; width: 12px; height: 24px; background-color: var(--team-color); animation: blink 0.6s step-end infinite; pointer-events: none; top: 50%; transform: translateY(-50%); left: 16px; transition: background-color 0.5s ease; }
+        #fake-cursor { position: absolute; width: 12px; height: 24px; background-color: var(--team-color); animation: blink 0.6s step-end infinite; pointer-events: none; top: 50%; transform: translateY(-50%); left: 16px; transition: background-color 0.3s ease; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; transition: 0.2s; }
         .suggestion-item:hover { background: var(--team-color); color: #000; }
         .analysis-text { line-height: 1.6; color: #ccc; }
-        .stat-tag { font-size: 0.85rem; border: 1px solid var(--team-color); padding: 4px 10px; margin-right: 8px; margin-bottom: 8px; color: var(--team-color); display: inline-block; transition: all 0.5s ease; }
+        .stat-tag { font-size: 0.9rem; border: 1px solid var(--team-color); padding: 4px 12px; margin-right: 10px; margin-bottom: 10px; color: var(--team-color); display: inline-block; font-weight: bold; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-12" onload="initTerminal()">
@@ -33,7 +33,7 @@
                 <div class="relative flex-1 flex items-center h-[60px]">
                     <input id="player-search" type="text" autocomplete="off" autofocus placeholder="SEARCH PLAYER..."
                            class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
-                           oninput="handleInput(this)" onkeydown="if(event.key === 'Enter') performGlobalSearch()">
+                           oninput="handleInput(this)">
                     <div id="fake-cursor"></div>
                 </div>
             </div>
@@ -47,14 +47,14 @@
                         <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-2"></h2>
                         <p id="p-team" class="text-2xl text-white opacity-70 tracking-widest"></p>
                     </div>
-                    <div class="text-left md:text-right min-w-[200px]">
+                    <div class="text-left md:text-right min-w-[240px]">
                         <div class="mb-6">
-                            <span class="block text-sm opacity-60 mb-1 font-bold">CHAMPIONSHIPS</span>
-                            <div id="p-rings" class="text-3xl gold-glow tracking-widest"></div>
+                            <span class="block text-lg opacity-80 mb-1 font-bold">CHAMPIONSHIPS</span>
+                            <div id="p-rings" class="text-4xl gold-glow tracking-widest"></div>
                         </div>
                         <div>
-                            <span class="block text-sm opacity-60 mb-1 font-bold">LEAGUE MVPS</span>
-                            <div id="p-mvps" class="text-3xl dynamic-neon tracking-widest"></div>
+                            <span class="block text-lg opacity-80 mb-1 font-bold">LEAGUE MVPS</span>
+                            <div id="p-mvps" class="text-4xl dynamic-neon tracking-widest"></div>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                 </div>
 
                 <div class="border-t border-white/10 pt-8">
-                    <span class="block text-2xl dynamic-neon font-bold mb-4">QUICK HITS:</span>
+                    <span class="block text-3xl dynamic-neon font-bold mb-6">QUICK HITS:</span>
                     <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
@@ -86,10 +86,11 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
 
+        // UPDATED WARRIORS YELLOW
         const TEAM_COLORS = {
-            'LAL': '#FDB927', 'GSW': '#1D428A', 'PHX': '#E56020', 'DEN': '#FEC524', 'MIL': '#00471B', 'BOS': '#007A33',
+            'LAL': '#FDB927', 'GSW': '#FFC72C', 'PHX': '#E56020', 'DEN': '#FEC524', 'MIL': '#00471B', 'BOS': '#007A33',
             'DAL': '#00538C', 'PHI': '#006BB6', 'LAC': '#C8102E', 'MIA': '#98002E', 'OKC': '#007AC1', 'SAS': '#C4CED4',
-            'MEM': '#5D76A9', 'MIN': '#0C2340', 'IND': '#FDBB30', 'SAC': '#5A2D81', 'CHI': '#CE1141', 'CLE': '#860038'
+            'CHI': '#CE1141', 'CLE': '#860038', 'NYK': '#F58426', 'GS': '#FFC72C'
         };
 
         const LOCAL_DB = [
@@ -102,6 +103,11 @@
                 first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, height: "6-2", weight: "185", position: "G", rings: 4, mvps: 2, rookie: 2009, 
                 blurb: "THE GREATEST OFFENSIVE RADIUS IN HUMAN HISTORY. CURRY DIDN'T JUST PLAY THE GAME; HE BROKE ITS MATHEMATICAL FOUNDATION. HIS GRAVITY REWRITES DEFENSIVE COORDINATES.",
                 sigs: ["4K+ 3PM", "91% FT ALL-TIME", "UNANIMOUS MVP", "OFF-BALL ELITE"]
+            },
+            {
+                first_name: "Draymond", last_name: "Green", team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, height: "6-6", weight: "230", position: "F", rings: 4, mvps: 0, rookie: 2012,
+                blurb: "THE DEFENSIVE GENIUS OF THE DYNASTY ERA. GREEN'S GOAT CASE IS BUILT ON THE NON-TRADITIONAL DOMINANCE OF A 'CEILING RAISER.' HE IS THE ONLY PLAYER TO RECORD A TRIPLE-DOUBLE WITHOUT 10 POINTS, PROVING THAT SCORING IS SECONDARY TO COURT CONTROL. HIS IQ IS THE GLUE THAT ALLOWED THE GREATEST OFFENSE IN HISTORY TO FUNCTION.",
+                sigs: ["DPOY 2017", "8X ALL-DEFENSIVE", "DEFENSIVE HUB", "POSTSEASON TACTICIAN"]
             }
         ];
 
@@ -119,37 +125,45 @@
             clearTimeout(debounceTimer);
             const val = el.value.trim().toLowerCase();
             if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
+
+            // Local DB first for instant match
             const localMatches = LOCAL_DB.filter(p => (p.first_name + " " + p.last_name).toLowerCase().includes(val));
-            if (localMatches.length > 0) renderSuggestions(localMatches);
-            else debounceTimer = setTimeout(() => fetchPlayers(el.value), 400);
+            
+            // API Search combined
+            debounceTimer = setTimeout(async () => {
+                const apiResults = await fetchPlayers(el.value);
+                renderSuggestions([...localMatches, ...apiResults]);
+            }, 300);
         }
 
         async function fetchPlayers(query) {
-            const dropdown = document.getElementById('suggestions');
-            dropdown.innerHTML = '<div class="p-4 opacity-50 text-xs animate-pulse">QUERYING NBA_GLOBAL...</div>';
-            dropdown.classList.remove('hidden');
             try {
                 const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
                 const json = await res.json();
-                renderSuggestions(json.data || []);
-            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500">API_ERROR</div>'; }
+                return json.data || [];
+            } catch (err) { return []; }
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
-            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 8).forEach(p => {
+            
+            // Unique results only
+            const unique = Array.from(new Map(players.map(p => [`${p.first_name}${p.last_name}`, p])).values());
+
+            if (unique.length === 0) { dropdown.classList.add('hidden'); return; }
+            unique.slice(0, 8).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-4 font-bold';
-                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${p.team.abbreviation}</span>`;
+                const team = p.team ? p.team.abbreviation : "NBA";
+                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${team}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
             dropdown.classList.remove('hidden');
         }
 
-        async function typeWriter(text, elementId, speed = 10) {
+        async function typeWriter(text, elementId, speed = 8) {
             const el = document.getElementById(elementId);
             el.innerHTML = "";
             for (let i = 0; i < text.length; i++) {
@@ -160,9 +174,7 @@
 
         async function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
-            
-            // TEAM COLOR LOGIC
-            const color = TEAM_COLORS[p.team.abbreviation] || '#39FF14';
+            const color = TEAM_COLORS[p.team?.abbreviation] || '#39FF14';
             document.documentElement.style.setProperty('--team-color', color);
 
             const searchInput = document.getElementById('player-search');
@@ -174,7 +186,8 @@
             
             const rings = p.rings || 0;
             const mvps = p.mvps || 0;
-            const rookie = p.rookie || 2022;
+            const rookie = p.rookie || 2021;
+            const fullName = p.team?.full_name || "NBA PROSPECT";
 
             const sigContainer = document.getElementById('p-sig');
             sigContainer.innerHTML = '';
@@ -186,29 +199,17 @@
                 sigContainer.appendChild(span);
             });
 
-            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
-            await typeWriter(p.team.full_name, 'p-team', 10);
+            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 12);
+            await typeWriter(fullName, 'p-team', 10);
             
             document.getElementById('p-rings').innerHTML = rings > 0 ? "🏆".repeat(rings) : "NONE";
             document.getElementById('p-mvps').innerHTML = mvps > 0 ? "⭐".repeat(mvps) : "NONE";
             document.getElementById('p-phys').innerText = `${p.height || "N/A"} / ${p.weight ? p.weight + ' LBS' : "N/A"}`;
-            document.getElementById('p-pos').innerText = p.position.length > 3 ? p.position : "FORWARD/GUARD";
+            document.getElementById('p-pos').innerText = p.position || "FORWARD/GUARD";
             document.getElementById('p-exp').innerText = `${rookie} (${2026 - rookie} SEASONS)`;
             
             const caseText = p.blurb || `THE CASE FOR ${p.last_name} IS BUILT ON RAW IMPACT AND TACTICAL FLEXIBILITY. HE REPRESENTS THE FOUNDATIONAL EXCELLENCE THAT SUSTAINS A WINNING CULTURE.`;
-            await typeWriter(caseText, 'p-case', 5);
-        }
-
-        async function performGlobalSearch() {
-            const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-            const local = LOCAL_DB.find(p => (p.first_name + " " + p.last_name).toLowerCase() === query.toLowerCase());
-            if (local) selectPlayer(local);
-            else {
-                const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
-                const json = await res.json();
-                if (json.data && json.data.length > 0) selectPlayer(json.data[0]);
-            }
+            await typeWriter(caseText, 'p-case', 4);
         }
     </script>
 </body>
