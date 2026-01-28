@@ -1,227 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+<style>
+    .gold-glow {
+        color: #FFD700;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+</style>
+
+<div id="result-area" class="hidden">
+    <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
+        <div class="mb-10">
+            <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
+            <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
+        </div>
         
-        body { 
-            background-color: #000; 
-            color: #fff; 
-            font-family: 'VT323', monospace; 
-            font-size: 22px;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            overflow-x: hidden;
-        }
-        
-        .solid-box { background: #000; border: 2px solid #333; position: relative; transition: border-color 0.4s ease; }
-        .dynamic-neon { 
-            color: #39FF14; 
-            text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); 
-            letter-spacing: 0.15em;
-            transition: color 0.4s ease;
-        }
-        
-        #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; }
-        #player-search::placeholder { color: #444; opacity: 1; }
-
-        #fake-cursor {
-            position: absolute;
-            width: 14px;
-            height: 24px;
-            background-color: #39FF14;
-            animation: blink 0.6s step-end infinite;
-            pointer-events: none;
-            z-index: 1;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        .loader-sq { width: 18px; height: 18px; border: 1px solid #222; position: relative; }
-        .loader-dot { width: 4px; height: 4px; background: #39FF14; position: absolute; animation: sqMove 0.6s infinite linear; }
-        @keyframes sqMove {
-            0% { top: 0; left: 0; }
-            25% { top: 0; left: 14px; }
-            50% { top: 14px; left: 14px; }
-            75% { top: 14px; left: 0; }
-            100% { top: 0; left: 0; }
-        }
-
-        .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
-    </style>
-</head>
-<body class="min-h-screen p-6 md:p-12" onload="initTerminal()">
-
-    <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-16">
-            <h1 class="text-6xl md:text-8xl font-normal mb-2 uppercase tracking-widest">
-                THAT'S MY <span id="goat-text" class="dynamic-neon">GOAT</span>
-            </h1>
-        </header>
-
-        <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="solid-box p-1 flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
-                <div class="relative flex-1 flex items-center h-[60px]">
-                    <input id="player-search" type="text" autocomplete="off" autofocus
-                           placeholder="ENTER PLAYER NAME"
-                           class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
-                           oninput="handleInput(this)"
-                           onkeydown="if(event.key === 'Enter') performGlobalSearch()"
-                           onfocus="clearSearch(this)">
-                    <div id="fake-cursor"></div>
-                </div>
-                
-                <div id="loader-box" class="hidden pr-4">
-                    <div class="loader-sq"><div id="loader-dot" class="loader-dot"></div></div>
-                </div>
-
-                <button id="search-btn" onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-10 py-4 hover:bg-white transition-colors text-xl tracking-widest">
-                    SEARCH
-                </button>
-            </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black"></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-t-2 border-white/10 pt-10">
+            <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-2xl font-bold tracking-widest"></span></div>
+            <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-2xl font-bold tracking-widest"></span></div>
+            <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">DIV</span><span id="p-div" class="text-2xl font-bold tracking-widest"></span></div>
+            <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">POS</span><span id="p-pos" class="text-2xl font-bold tracking-widest"></span></div>
         </div>
 
-        <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
-                <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
-                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-3xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-3xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-3xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-3xl font-bold tracking-widest"></span></div>
-                </div>
-            </div>
+        <div class="mt-8 pt-6 border-t border-white/5">
+            <span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS_WON:</span>
+            <span id="p-rings" class="text-4xl font-bold tracking-[0.5em] gold-glow"></span>
+        </div>
+
+        <div class="goat-blurb">
+            <span class="block text-sm dynamic-neon mb-3 tracking-[0.4em]">VERDICT_GOAT_CASE:</span>
+            <p id="p-case" class="text-xl italic leading-relaxed"></p>
         </div>
     </div>
-
-    <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 24px; letter-spacing: 0.15em; text-transform: uppercase;"></span>
-
-    <script>
-        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
-        let debounceTimer;
-
-        function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
-        
-        // FIX: Now clears ANY text on focus so user can start a new search instantly
-        function clearSearch(el) { 
-            el.value = '';
-            document.getElementById('suggestions').classList.add('hidden'); 
-            updateCursor(); 
-        }
-
-        function handleInput(el) { 
-            updateCursor(); 
-            if (el.value.length >= 2) {
-                document.getElementById('loader-box').classList.remove('hidden');
-                debouncedSearch(el.value);
-            } else {
-                document.getElementById('suggestions').classList.add('hidden');
-                document.getElementById('loader-box').classList.add('hidden');
-            }
-        }
-
-        function updateCursor() {
-            const input = document.getElementById('player-search');
-            const cursor = document.getElementById('fake-cursor');
-            const measurer = document.getElementById('text-measurer');
-            measurer.textContent = input.value || "";
-            cursor.style.left = (16 + measurer.offsetWidth) + "px";
-        }
-
-        function debouncedSearch(val) {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
-        }
-
-        async function fetchPlayers(query, isDropdown = false) {
-            const terms = query.trim().split(/\s+/);
-            let url = `https://api.balldontlie.io/v1/players?`;
-            url += terms.length > 1 ? `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}` : `search=${encodeURIComponent(terms[0])}`;
-            try {
-                const res = await fetch(url, { headers: { 'Authorization': API_KEY } });
-                const json = await res.json();
-                if (isDropdown) renderSuggestions(json.data || []);
-                return json.data || [];
-            } catch (err) { console.error(err); }
-            finally { document.getElementById('loader-box').classList.add('hidden'); }
-        }
-
-        function renderSuggestions(players) {
-            const dropdown = document.getElementById('suggestions');
-            dropdown.innerHTML = '';
-            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 5).forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 border-b border-white/5 uppercase';
-                div.innerHTML = `${p.first_name} ${p.last_name} // ${p.team.abbreviation}`;
-                div.onclick = () => selectPlayer(p);
-                dropdown.appendChild(div);
-            });
-            dropdown.classList.remove('hidden');
-        }
-
-        async function typeWriter(text, elementId, speed = 15) {
-            const el = document.getElementById(elementId);
-            el.innerHTML = "";
-            for (let i = 0; i < text.length; i++) {
-                el.innerHTML += text.charAt(i);
-                await new Promise(resolve => setTimeout(resolve, speed));
-            }
-        }
-
-        // FIX: Force suggestion box to hide when performing a full search
-        async function performGlobalSearch() {
-            const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-            document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('loader-box').classList.remove('hidden');
-            const results = await fetchPlayers(query, false);
-            if (results && results.length > 0) selectPlayer(results[0]);
-            document.getElementById('loader-box').classList.add('hidden');
-        }
-
-        async function selectPlayer(p) {
-            document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
-            updateCursor();
-            
-            const colors = {
-                'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'CHI': '#CE1141', 
-                'NYK': '#F58426', 'MIA': '#98002E', 'PHX': '#E56020', 'MIL': '#EEE1C6'
-            };
-            const themeColor = colors[p.team.abbreviation] || '#39FF14';
-
-            document.getElementById('result-area').classList.remove('hidden');
-            document.getElementById('goat-text').style.color = themeColor;
-            document.getElementById('player-card').style.borderColor = themeColor;
-            document.getElementById('search-btn').style.backgroundColor = themeColor;
-            document.getElementById('fake-cursor').style.backgroundColor = themeColor;
-            document.getElementById('loader-dot').style.backgroundColor = themeColor;
-            document.getElementById('p-name').style.color = themeColor;
-
-            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER', 'G-F': 'GUARD-FORWARD', 'F-G': 'FORWARD-GUARD' };
-            const fullPos = posMap[p.position] || p.position || "N/A";
-
-            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
-            await typeWriter(p.team.full_name, 'p-team', 10);
-            
-            typeWriter(p.height || "N/A", 'p-height', 15);
-            typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
-            typeWriter(p.team.division || "N/A", 'p-div', 15);
-            typeWriter(fullPos, 'p-pos', 15);
-        }
-    </script>
-</body>
-</html>
+</div>
