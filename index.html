@@ -54,17 +54,17 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-t-2 border-white/10 pt-10">
                     <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-2xl font-bold tracking-widest"></span></div>
                     <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-2xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">DIV</span><span id="p-div" class="text-2xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">POS</span><span id="p-pos" class="text-2xl font-bold tracking-widest"></span></div>
+                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-2xl font-bold tracking-widest"></span></div>
+                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-2xl font-bold tracking-widest"></span></div>
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-white/5">
-                    <span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS_WON:</span>
+                    <span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS:</span>
                     <span id="p-rings" class="text-4xl font-bold gold-glow"></span>
                 </div>
 
                 <div class="goat-blurb">
-                    <span class="block text-sm dynamic-neon mb-3 tracking-[0.4em]">VERDICT_GOAT_CASE:</span>
+                    <span class="block text-2xl dynamic-neon mb-3 tracking-[0.4em] font-bold">GOAT CASE:</span>
                     <p id="p-case" class="text-xl italic leading-relaxed"></p>
                 </div>
             </div>
@@ -77,7 +77,6 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f'; 
         let debounceTimer;
 
-        // 1. DATA REGISTRIES
         const RING_REGISTRY = {
             "James": 4, "Curry": 4, "Thompson": 4, "Green": 4, "Durant": 2, "Leonard": 2, "Holiday": 2,
             "Caldwell-Pope": 2, "Antetokounmpo": 1, "Jokic": 1, "Davis": 1, "Irving": 1, "Tatum": 1, 
@@ -93,11 +92,9 @@
             "Durant": "THE MOST EFFORTLESS SCORER THE WING HAS EVER SEEN. A 7-FOOTER WITH THE TOUCH OF A GUARD. UNGUARDABLE AT ANY LEVEL.",
             "Wembanyama": "THE 'ALIEN.' A DEFENSIVE ANOMALY WITH A PERIMETER BAG. THE MOST ANTICIPATED PROSPECT SINCE LEBRON FOR A REASON.",
             "Antetokounmpo": "A PHYSICAL FORCE UNLIKE ANY OTHER. THE GREEK FREAK COMBINES DPOY-LEVEL DEFENSE WITH UNSTOPPABLE INTERIOR SCORING.",
-            "Embiid": "THE ULTIMATE MODERN CENTER. HE PAIRS OLD-SCHOOL BACK-TO-THE-BASKET POWER WITH ELITE MID-RANGE AND FACE-UP SKILLS.",
-            "Gilgeous-Alexander": "THE MASTER OF PACE AND INTERMEDIATE SCORING. HIS ABILITY TO GET TO HIS SPOTS IS CLINICAL AND NEARLY IMPOSSIBLE TO DISRUPT."
+            "Embiid": "THE ULTIMATE MODERN CENTER. HE PAIRS OLD-SCHOOL BACK-TO-THE-BASKET POWER WITH ELITE MID-RANGE AND FACE-UP SKILLS."
         };
 
-        // 2. CORE FUNCTIONS
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
 
         function updateCursor() {
@@ -154,9 +151,14 @@
             }
         }
 
+        function formatPosition(pos) {
+            if (!pos) return "N/A";
+            return pos.replace(/G/g, "GUARD").replace(/F/g, "FORWARD").replace(/C/g, "CENTER").replace("-", " / ");
+        }
+
         function generateGoatCase(p) {
             if (LEGEND_BLURBS[p.last_name]) return LEGEND_BLURBS[p.last_name];
-            const pos = p.position || "PLAYER";
+            const pos = p.position || "";
             const team = p.team.abbreviation;
             if (pos.includes("G")) return `A DYNAMIC BACKCOURT ENGINE. ${p.last_name} DEFINES THE PACE FOR THE ${team}, BLENDING ELITE PLAYMAKING WITH MODERN RANGE.`;
             if (pos.includes("F")) return `A VERSATILE FORWARD FOR THE ${team}. HIS TWO-WAY IMPACT AND ADAPTABILITY ARE VITAL IN TODAY'S POSITIONLESS BASKETBALL.`;
@@ -176,16 +178,13 @@
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
 
-            const colors = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'CHI': '#CE1141' };
-            const themeColor = colors[p.team.abbreviation] || '#39FF14';
-
+            const themeColor = '#39FF14';
             document.getElementById('result-area').classList.remove('hidden');
-            document.getElementById('goat-text').style.color = themeColor;
             document.getElementById('player-card').style.borderColor = themeColor;
             document.getElementById('p-name').style.color = themeColor;
 
             const ringCount = RING_REGISTRY[p.last_name] || 0;
-            const ringDisplay = ringCount > 0 ? "🏆".repeat(ringCount) + ` (${ringCount})` : "0";
+            const ringDisplay = ringCount > 0 ? "🏆".repeat(ringCount) : "0";
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
             await typeWriter(p.team.full_name, 'p-team', 10);
@@ -193,7 +192,7 @@
             typeWriter(p.height || "N/A", 'p-height', 15);
             typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
             typeWriter(p.team.division || "N/A", 'p-div', 15);
-            typeWriter(p.position || "N/A", 'p-pos', 15);
+            typeWriter(formatPosition(p.position), 'p-pos', 15);
             
             await typeWriter(ringDisplay, 'p-rings', 50);
             typeWriter(generateGoatCase(p), 'p-case', 8);
