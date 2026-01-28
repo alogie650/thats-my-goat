@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT // Terminal</title>
+    <title>That's My GOAT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 0.15em; overflow-x: hidden; }
-        .solid-box { background: #000; border: 2px solid #333; position: relative; }
+        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; overflow-x: hidden; }
+        .solid-box { background: #000; border: 2px solid #333; position: relative; transition: border-color 0.4s ease; }
         .dynamic-neon { color: #39FF14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); }
         .gold-glow { color: #FFD700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); }
         #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; background: transparent; }
-        #fake-cursor { position: absolute; width: 14px; height: 24px; background-color: #39FF14; animation: blink 0.6s step-end infinite; pointer-events: none; z-index: 1; top: 50%; transform: translateY(-50%); left: 16px; }
+        #player-search::placeholder { color: #1a1a1a; }
+        #fake-cursor { position: absolute; width: 14px; height: 24px; background-color: #39FF14; animation: blink 0.6s step-end infinite; pointer-events: none; z-index: 1; top: 50%; transform: translateY(-50%); left: 16px; transition: left 0.05s linear; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; }
         .suggestion-item:hover { background: #39FF14; color: #000; }
-        .loading-text { color: #555; font-size: 14px; padding: 10px; animation: pulse 1s infinite; }
+        .loading-text { color: #39FF14; font-size: 14px; padding: 10px; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     </style>
 </head>
@@ -41,14 +42,14 @@
                 </div>
                 <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-10 py-4 hover:bg-white transition-colors text-xl tracking-widest">SEARCH</button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[300px] overflow-y-auto"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[400px] overflow-y-auto"></div>
         </div>
 
         <div id="result-area" class="hidden">
             <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
                 <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
+                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider"></h2>
+                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em]"></p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-t-2 border-white/10 pt-10">
@@ -64,8 +65,8 @@
                 </div>
 
                 <div class="mt-8 pt-6 border-t-2 border-dashed border-white/10">
-                    <span class="block text-3xl dynamic-neon mb-3 tracking-[0.4em] font-bold">GOAT CASE:</span>
-                    <p id="p-case" class="text-xl italic leading-relaxed text-gray-400"></p>
+                    <span class="block text-3xl dynamic-neon mb-3 tracking-[0.4em] font-bold uppercase">GOAT CASE:</span>
+                    <p id="p-case" class="text-xl italic leading-relaxed text-gray-300"></p>
                 </div>
             </div>
         </div>
@@ -77,11 +78,30 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f'; 
         let debounceTimer;
 
-        // LOCAL REGISTRY (Prevents API throttling for main players)
+        // EXPANDED LOCAL DATABASE (40+ Players)
         const LOCAL_DB = [
-            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL", division: "Pacific" }, height: "6-9", weight: "250", position: "F", rings: 4, rookie: 2003, blurb: "THE ALL-TIME SCORING KING. A MASTER OF LONGEVITY." },
-            { first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State Warriors", abbreviation: "GSW", division: "Pacific" }, height: "6-2", weight: "185", position: "G", rings: 4, rookie: 2009, blurb: "THE GREATEST SHOOTER IN HISTORY. HE CHANGED THE GAME." },
-            { first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN", division: "Northwest" }, height: "6-11", weight: "284", position: "C", rings: 1, rookie: 2014, blurb: "A TRIPLE-DOUBLE MACHINE. THE BEST PASSING CENTER EVER." }
+            { first_name: "LeBron", last_name: "James", team: { full_name: "LA Lakers", abbreviation: "LAL", division: "Pacific" }, height: "6-9", weight: "250", position: "FORWARD", rings: 4, rookie: 2003, blurb: "ALL-TIME SCORING KING. PEAK LONGEVITY AND BASKETBALL IQ." },
+            { first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State", abbreviation: "GSW", division: "Pacific" }, height: "6-2", weight: "185", position: "GUARD", rings: 4, rookie: 2009, blurb: "REVOLUTIONIZED BASKETBALL. THE GREATEST SHOOTER TO EVER LIVE." },
+            { first_name: "Kevin", last_name: "Durant", team: { full_name: "Phoenix Suns", abbreviation: "PHX", division: "Pacific" }, height: "6-11", weight: "240", position: "FORWARD", rings: 2, rookie: 2007, blurb: "A SEVEN-FOOT GUARD. THE MOST EFFORTLESS SCORING ARCHETYPE EVER." },
+            { first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN", division: "Northwest" }, height: "6-11", weight: "284", position: "CENTER", rings: 1, rookie: 2014, blurb: "THE HUB OF THE PERFECT OFFENSE. UNMATCHED VISION AND EFFICIENCY." },
+            { first_name: "Giannis", last_name: "Antetokounmpo", team: { full_name: "Milwaukee Bucks", abbreviation: "MIL", division: "Central" }, height: "6-11", weight: "243", position: "FORWARD", rings: 1, rookie: 2013, blurb: "PHYSICAL DOMINANCE REINVENTED. A TRANSITION NIGHTMARE." },
+            { first_name: "Luka", last_name: "Doncic", team: { full_name: "Dallas Mavericks", abbreviation: "DAL", division: "Southwest" }, height: "6-7", weight: "230", position: "GUARD", rings: 0, rookie: 2018, blurb: "OFFENSIVE GENIUS. HE MANIPULATES DEFENSES AT HIS OWN PACE." },
+            { first_name: "Joel", last_name: "Embiid", team: { full_name: "Philly 76ers", abbreviation: "PHI", division: "Atlantic" }, height: "7-0", weight: "280", position: "CENTER", rings: 0, rookie: 2014, blurb: "MODERN POST DOMINANCE. A TWO-WAY FORCE IN THE PAINT." },
+            { first_name: "Jayson", last_name: "Tatum", team: { full_name: "Boston Celtics", abbreviation: "BOS", division: "Atlantic" }, height: "6-8", weight: "210", position: "FORWARD", rings: 1, rookie: 2017, blurb: "THE ULTIMATE TWO-WAY WING. SMOOTH SHOT-MAKING ON BIG STAGES." },
+            { first_name: "Kawhi", last_name: "Leonard", team: { full_name: "LA Clippers", abbreviation: "LAC", division: "Pacific" }, height: "6-7", weight: "225", position: "FORWARD", rings: 2, rookie: 2011, blurb: "THE KLAW. A TWO-TIME FINALS MVP WITH ELITE DEFENSIVE ROOTS." },
+            { first_name: "Kyrie", last_name: "Irving", team: { full_name: "Dallas Mavericks", abbreviation: "DAL", division: "Southwest" }, height: "6-2", weight: "195", position: "GUARD", rings: 1, rookie: 2011, blurb: "THE BEST HANDLES IN NBA HISTORY. A CREATIVE FINISHING SAVANT." },
+            { first_name: "Anthony", last_name: "Davis", team: { full_name: "LA Lakers", abbreviation: "LAL", division: "Pacific" }, height: "6-10", weight: "253", position: "FORWARD / CENTER", rings: 1, rookie: 2012, blurb: "ELITE RIM PROTECTOR AND VERSATILE INTERIOR SCORER." },
+            { first_name: "Devin", last_name: "Booker", team: { full_name: "Phoenix Suns", abbreviation: "PHX", division: "Pacific" }, height: "6-6", weight: "206", position: "GUARD", rings: 0, rookie: 2015, blurb: "PURE MID-RANGE ASSASSIN. KOBE-ESQUE SCORING MENTALITY." },
+            { first_name: "Shai", last_name: "Gilgeous-Alexander", team: { full_name: "OKC Thunder", abbreviation: "OKC", division: "Northwest" }, height: "6-6", weight: "195", position: "GUARD", rings: 0, rookie: 2018, blurb: "UNSTOPPABLE DRIVE-AND-KICK SAVANT. MASTER OF PACE." },
+            { first_name: "Victor", last_name: "Wembanyama", team: { full_name: "San Antonio Spurs", abbreviation: "SAS", division: "Southwest" }, height: "7-4", weight: "210", position: "FORWARD / CENTER", rings: 0, rookie: 2023, blurb: "THE ALIEN. REDEFINING THE LAWS OF BASKETBALL PHYSICS." },
+            { first_name: "Jimmy", last_name: "Butler", team: { full_name: "Miami Heat", abbreviation: "MIA", division: "Southeast" }, height: "6-7", weight: "230", position: "FORWARD", rings: 0, rookie: 2011, blurb: "PLAYOFF JIMMY. UNMATCHED GRIT AND DEFENSIVE IMPACT." },
+            { first_name: "Damian", last_name: "Lillard", team: { full_name: "Milwaukee Bucks", abbreviation: "MIL", division: "Central" }, height: "6-2", weight: "195", position: "GUARD", rings: 0, rookie: 2012, blurb: "DAME TIME. THE LEAGUE'S PREMIER DEEP-RANGE CLUTCH SHOOTER." },
+            { first_name: "Ja", last_name: "Morant", team: { full_name: "Memphis Grizzlies", abbreviation: "MEM", division: "Southwest" }, height: "6-2", weight: "174", position: "GUARD", rings: 0, rookie: 2019, blurb: "THE MOST EXPLOSIVE ATHLETE IN THE MODERN BACKCOURT." },
+            { first_name: "Anthony", last_name: "Edwards", team: { full_name: "Minnesota Wolves", abbreviation: "MIN", division: "Northwest" }, height: "6-4", weight: "225", position: "GUARD", rings: 0, rookie: 2020, blurb: "ANT-MAN. FEARLESS SCORER WITH UNLIMITED CEILING." },
+            { first_name: "Tyrese", last_name: "Haliburton", team: { full_name: "Indiana Pacers", abbreviation: "IND", division: "Central" }, height: "6-5", weight: "185", position: "GUARD", rings: 0, rookie: 2020, blurb: "THE ULTIMATE FLOOR GENERAL. MASTER OF THE ASSIST-TO-TURNOVER RATIO." },
+            { first_name: "Domantas", last_name: "Sabonis", team: { full_name: "Sacramento Kings", abbreviation: "SAC", division: "Pacific" }, height: "6-10", weight: "240", position: "CENTER", rings: 0, rookie: 2016, blurb: "TRIPLE-DOUBLE THREAT. THE ENGINE OF THE KINGS' OFFENSE." },
+            { first_name: "Jaylen", last_name: "Brown", team: { full_name: "Boston Celtics", abbreviation: "BOS", division: "Atlantic" }, height: "6-6", weight: "223", position: "GUARD / FORWARD", rings: 1, rookie: 2016, blurb: "FINALS MVP. ELITE TWO-WAY WING WITH EXPLOSIVE FINISHING." },
+            { first_name: "James", last_name: "Harden", team: { full_name: "LA Clippers", abbreviation: "LAC", division: "Pacific" }, height: "6-5", weight: "220", position: "GUARD", rings: 0, rookie: 2009, blurb: "REVOLUTIONARY ISOLATION SCORER AND PLAYMAKING GENIUS." }
         ];
 
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
@@ -96,37 +116,36 @@
         function handleInput(el) { 
             updateCursor(); 
             clearTimeout(debounceTimer);
-            if (el.value.length < 2) { 
-                document.getElementById('suggestions').classList.add('hidden'); 
-                return; 
-            }
-            // Check Local DB First
-            const localMatch = LOCAL_DB.filter(p => (p.first_name + p.last_name).toLowerCase().includes(el.value.toLowerCase()));
-            if (localMatch.length > 0) { renderSuggestions(localMatch); return; }
+            const val = el.value.trim().toLowerCase();
+            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
 
-            // API Throttle Protection
-            debounceTimer = setTimeout(() => fetchPlayers(el.value), 500); 
+            const localMatches = LOCAL_DB.filter(p => 
+                (p.first_name + " " + p.last_name).toLowerCase().includes(val) || 
+                p.last_name.toLowerCase().includes(val)
+            );
+
+            if (localMatches.length > 0) { renderSuggestions(localMatches); } 
+            else { debounceTimer = setTimeout(() => fetchPlayers(el.value), 400); }
         }
 
         async function fetchPlayers(query) {
             const dropdown = document.getElementById('suggestions');
-            dropdown.innerHTML = '<div class="loading-text">CONNECTING TO DATABASE...</div>';
+            dropdown.innerHTML = '<div class="loading-text">ACCESSING NBA_GLOBAL_DATABASE...</div>';
             dropdown.classList.remove('hidden');
-
             try {
                 const res = await fetch(`https://api.balldontlie.io/v1/players?search=${encodeURIComponent(query)}`, { headers: { 'Authorization': API_KEY } });
                 const json = await res.json();
                 renderSuggestions(json.data || []);
-            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500 text-sm">RATE LIMIT EXCEEDED. WAIT 10S.</div>'; }
+            } catch (err) { dropdown.innerHTML = '<div class="p-4 text-red-500 text-sm">RATE_LIMIT_HIT: RETRY IN 60S.</div>'; }
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 5).forEach(p => {
+            players.slice(0, 10).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 uppercase font-bold';
+                div.className = 'suggestion-item p-4 uppercase font-bold text-lg';
                 div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-40 ml-2">// ${p.team.abbreviation}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
@@ -143,17 +162,23 @@
             }
         }
 
+        function formatPosition(pos) {
+            if (!pos) return "N/A";
+            return pos.replace(/G/g, "GUARD").replace(/F/g, "FORWARD").replace(/C/g, "CENTER").replace("-", " / ");
+        }
+
         async function selectPlayer(p) {
             document.getElementById('suggestions').classList.add('hidden');
-            document.getElementById('player-search').value = ""; // Clear for next search
+            document.getElementById('player-search').value = "";
             updateCursor();
 
             document.getElementById('result-area').classList.remove('hidden');
             
-            // Format Data
-            const rings = p.rings || (p.last_name === "James" || p.last_name === "Curry" ? 4 : 0);
+            // Data Normalization
+            const rings = p.rings || 0;
             const ringDisplay = rings > 0 ? "🏆".repeat(rings) : "0";
-            const rookie = p.rookie || 2020;
+            const rookie = p.rookie || 2021;
+            const pos = p.position.length > 3 ? p.position : formatPosition(p.position);
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
             await typeWriter(p.team.full_name, 'p-team', 10);
@@ -161,11 +186,20 @@
             typeWriter(p.height || "N/A", 'p-height', 15);
             typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
             typeWriter(p.team.division || "N/A", 'p-div', 15);
-            typeWriter(p.position || "N/A", 'p-pos', 15);
+            typeWriter(pos, 'p-pos', 15);
             
             typeWriter(ringDisplay, 'p-rings', 50);
             typeWriter(`${rookie} (${2026 - rookie} SEASONS)`, 'p-active', 20);
-            typeWriter(p.blurb || `A VITAL ASSET TO THE ${p.team.abbreviation} SQUAD.`, 'p-case', 8);
+            
+            const blurb = p.blurb || `A VITAL ASSET TO THE ${p.team.abbreviation} SQUAD. HIS IMPACT DEFINES THE MODERN GAME.`;
+            typeWriter(blurb, 'p-case', 8);
+        }
+
+        async function performGlobalSearch() {
+            const query = document.getElementById('player-search').value.trim();
+            if (!query) return;
+            const results = await fetchPlayers(query);
+            if (results && results.length > 0) selectPlayer(results[0]);
         }
     </script>
 </body>
