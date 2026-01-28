@@ -26,11 +26,7 @@
             transition: color 0.4s ease;
         }
         
-        #player-search { 
-            caret-color: transparent; 
-            z-index: 2; 
-            letter-spacing: 0.15em;
-        }
+        #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; }
         
         #fake-cursor {
             position: absolute;
@@ -54,6 +50,15 @@
             50% { top: 14px; left: 14px; }
             75% { top: 14px; left: 0; }
             100% { top: 0; left: 0; }
+        }
+
+        .curry-headshot {
+            width: 120px;
+            height: 120px;
+            image-rendering: pixelated; /* Retro effect */
+            border: 2px solid #333;
+            background: #111;
+            filter: contrast(110%);
         }
 
         .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
@@ -94,29 +99,24 @@
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
-                <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
+            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14] flex flex-col md:flex-row justify-between items-start">
+                <div class="flex-1">
+                    <div class="mb-10">
+                        <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
+                        <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
+                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-3xl font-bold tracking-widest"></span></div>
+                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-3xl font-bold tracking-widest"></span></div>
+                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-3xl font-bold tracking-widest"></span></div>
+                        <div><span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-3xl font-bold tracking-widest"></span></div>
+                    </div>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-12 border-t-2 border-white/10 pt-10 mt-10">
-                    <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span>
-                        <span id="p-height" class="text-3xl font-bold tracking-widest"></span>
-                    </div>
-                    <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span>
-                        <span id="p-weight" class="text-3xl font-bold tracking-widest"></span>
-                    </div>
-                    <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">DIVISION</span>
-                        <span id="p-div" class="text-3xl font-bold tracking-widest"></span>
-                    </div>
-                    <div>
-                        <span class="block text-lg opacity-50 mb-2 tracking-[0.3em]">POSITION</span>
-                        <span id="p-pos" class="text-3xl font-bold tracking-widest"></span>
-                    </div>
+
+                <div id="avatar-container" class="hidden mt-8 md:mt-0 md:ml-8">
+                    <img id="player-avatar" src="" class="curry-headshot" alt="IMG_ID_CURRY">
+                    <span class="block text-center text-xs opacity-30 mt-2 tracking-[0.3em]">BIO_VISUAL</span>
                 </div>
             </div>
         </div>
@@ -128,23 +128,9 @@
         const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
 
-        function initTerminal() {
-            document.getElementById('player-search').focus();
-            updateCursor();
-        }
-
-        function clearSearch(el) {
-            el.value = '';
-            document.getElementById('suggestions').classList.add('hidden');
-            updateCursor();
-        }
-
-        function handleInput(el) {
-            updateCursor();
-            if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden');
-            else document.getElementById('loader-box').classList.add('hidden');
-            debouncedSearch(el.value);
-        }
+        function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
+        function clearSearch(el) { el.value = ''; document.getElementById('suggestions').classList.add('hidden'); updateCursor(); }
+        function handleInput(el) { updateCursor(); if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden'); debouncedSearch(el.value); }
 
         function updateCursor() {
             const input = document.getElementById('player-search');
@@ -156,11 +142,7 @@
 
         function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            if (val.length < 2) { 
-                document.getElementById('suggestions').classList.add('hidden'); 
-                document.getElementById('loader-box').classList.add('hidden');
-                return; 
-            }
+            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
             debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
         }
 
@@ -203,10 +185,8 @@
         async function performGlobalSearch() {
             const query = document.getElementById('player-search').value.trim();
             if (!query) return;
-            document.getElementById('loader-box').classList.remove('hidden');
             const results = await fetchPlayers(query, false);
             if (results && results.length > 0) selectPlayer(results[0]);
-            document.getElementById('loader-box').classList.add('hidden');
         }
 
         async function selectPlayer(p) {
@@ -214,21 +194,29 @@
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
             
-            const colors = {
-                'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'CHI': '#CE1141', 
-                'NYK': '#F58426', 'MIA': '#98002E', 'PHX': '#E56020', 'MIL': '#EEE1C6'
-            };
-            const themeColor = colors[p.team.abbreviation] || '#39FF14';
+            const themeColor = p.team.abbreviation === 'GSW' ? '#1D428A' : '#39FF14';
 
+            // Show Result Area
             document.getElementById('result-area').classList.remove('hidden');
+            
+            // Handle Custom Avatar for Curry
+            const avatarContainer = document.getElementById('avatar-container');
+            const avatarImg = document.getElementById('player-avatar');
+            if (p.first_name.toLowerCase() === 'stephen' && p.last_name.toLowerCase() === 'curry') {
+                avatarImg.src = "https://googleusercontent.com/image_generation_content/4";
+                avatarContainer.classList.remove('hidden');
+            } else {
+                avatarContainer.classList.add('hidden');
+            }
+
+            // Theme Application
             document.getElementById('goat-text').style.color = themeColor;
             document.getElementById('player-card').style.borderColor = themeColor;
             document.getElementById('search-btn').style.backgroundColor = themeColor;
             document.getElementById('fake-cursor').style.backgroundColor = themeColor;
-            document.getElementById('loader-dot').style.backgroundColor = themeColor;
             document.getElementById('p-name').style.color = themeColor;
 
-            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER', 'G-F': 'GUARD-FORWARD', 'F-G': 'FORWARD-GUARD', 'F-C': 'FORWARD-CENTER', 'C-F': 'CENTER-FORWARD' };
+            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER' };
             const fullPos = posMap[p.position] || p.position || "N/A";
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
