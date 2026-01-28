@@ -28,6 +28,12 @@
         
         #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; }
         
+        /* Muted Gray Placeholder */
+        #player-search::placeholder {
+            color: #444;
+            opacity: 1;
+        }
+
         #fake-cursor {
             position: absolute;
             width: 14px;
@@ -53,12 +59,11 @@
         }
 
         .curry-headshot {
-            width: 120px;
-            height: 120px;
-            image-rendering: pixelated; /* Retro effect */
+            width: 140px;
+            height: 140px;
+            image-rendering: pixelated;
             border: 2px solid #333;
-            background: #111;
-            filter: contrast(110%);
+            background: #050505;
         }
 
         .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
@@ -67,19 +72,17 @@
 <body class="min-h-screen p-6 md:p-12" onload="initTerminal()">
 
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-5xl md:text-7xl font-normal mb-2 uppercase tracking-widest">
+        <header class="text-center mb-16">
+            <h1 class="text-6xl md:text-8xl font-normal mb-2 uppercase tracking-widest">
                 THAT'S MY <span id="goat-text" class="dynamic-neon">GOAT</span>
             </h1>
-            <div id="sys-status" class="text-sm tracking-[0.6em] opacity-60 border border-white/20 px-6 py-1 inline-block">
-                SYSTEM_ACCESS: GRANTED
-            </div>
         </header>
 
         <div class="relative max-w-2xl mx-auto mb-12">
             <div class="solid-box p-1 flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
                 <div class="relative flex-1 flex items-center h-[60px]">
                     <input id="player-search" type="text" autocomplete="off" autofocus
+                           placeholder="ENTER PLAYER NAME"
                            class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
                            oninput="handleInput(this)"
                            onkeydown="if(event.key === 'Enter') performGlobalSearch()"
@@ -99,8 +102,8 @@
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14] flex flex-col md:flex-row justify-between items-start">
-                <div class="flex-1">
+            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14] flex flex-col md:flex-row justify-between items-center md:items-start">
+                <div class="flex-1 w-full">
                     <div class="mb-10">
                         <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider min-h-[1em]"></h2>
                         <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em] min-h-[1.2em]"></p>
@@ -114,7 +117,7 @@
                     </div>
                 </div>
 
-                <div id="avatar-container" class="hidden mt-8 md:mt-0 md:ml-8">
+                <div id="avatar-container" class="hidden mt-10 md:mt-0 md:ml-12 shrink-0">
                     <img id="player-avatar" src="" class="curry-headshot" alt="IMG_ID_CURRY">
                     <span class="block text-center text-xs opacity-30 mt-2 tracking-[0.3em]">BIO_VISUAL</span>
                 </div>
@@ -129,14 +132,26 @@
         let debounceTimer;
 
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
-        function clearSearch(el) { el.value = ''; document.getElementById('suggestions').classList.add('hidden'); updateCursor(); }
-        function handleInput(el) { updateCursor(); if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden'); debouncedSearch(el.value); }
+        
+        function clearSearch(el) { 
+            // Only clear if the user hasn't typed anything yet or it's a previous result
+            if(el.value === "ENTER PLAYER NAME") el.value = '';
+            document.getElementById('suggestions').classList.add('hidden'); 
+            updateCursor(); 
+        }
+
+        function handleInput(el) { 
+            updateCursor(); 
+            if (el.value.length >= 2) document.getElementById('loader-box').classList.remove('hidden'); 
+            debouncedSearch(el.value); 
+        }
 
         function updateCursor() {
             const input = document.getElementById('player-search');
             const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
-            measurer.textContent = input.value;
+            // If empty, use placeholder length to position cursor if needed, or pin to start
+            measurer.textContent = input.value || "";
             cursor.style.left = (16 + measurer.offsetWidth) + "px";
         }
 
@@ -194,29 +209,31 @@
             document.getElementById('player-search').value = `${p.first_name} ${p.last_name}`;
             updateCursor();
             
-            const themeColor = p.team.abbreviation === 'GSW' ? '#1D428A' : '#39FF14';
+            const colors = {
+                'LAL': '#FDB927', 'GSW': '#1D428A', 'BOS': '#007A33', 'CHI': '#CE1141', 
+                'NYK': '#F58426', 'MIA': '#98002E', 'PHX': '#E56020', 'MIL': '#EEE1C6'
+            };
+            const themeColor = colors[p.team.abbreviation] || '#39FF14';
 
-            // Show Result Area
             document.getElementById('result-area').classList.remove('hidden');
             
-            // Handle Custom Avatar for Curry
             const avatarContainer = document.getElementById('avatar-container');
             const avatarImg = document.getElementById('player-avatar');
             if (p.first_name.toLowerCase() === 'stephen' && p.last_name.toLowerCase() === 'curry') {
-                avatarImg.src = "https://googleusercontent.com/image_generation_content/4";
+                avatarImg.src = "https://googleusercontent.com/image_generation_content/5";
                 avatarContainer.classList.remove('hidden');
             } else {
                 avatarContainer.classList.add('hidden');
             }
 
-            // Theme Application
             document.getElementById('goat-text').style.color = themeColor;
             document.getElementById('player-card').style.borderColor = themeColor;
             document.getElementById('search-btn').style.backgroundColor = themeColor;
             document.getElementById('fake-cursor').style.backgroundColor = themeColor;
+            document.getElementById('loader-dot').style.backgroundColor = themeColor;
             document.getElementById('p-name').style.color = themeColor;
 
-            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER' };
+            const posMap = { 'G': 'GUARD', 'F': 'FORWARD', 'C': 'CENTER', 'G-F': 'GUARD-FORWARD', 'F-G': 'FORWARD-GUARD' };
             const fullPos = posMap[p.position] || p.position || "N/A";
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
