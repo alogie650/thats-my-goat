@@ -3,69 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT // NBA 75</title>
+    <title>That's My GOAT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;700&display=swap');
+        
         :root { --team-color: #39FF14; }
-        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: 'VT323', monospace; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em; 
+        }
+
         .solid-box { background: #000; border: 2px solid #333; position: relative; }
         .dynamic-neon { color: var(--team-color); }
+        
+        /* Search Bar Placeholder Reverted */
+        #player-search { 
+            caret-color: var(--team-color); 
+            background: transparent; 
+            padding-left: 15px !important; 
+        }
+
+        /* Large Font for GOAT Case & Analysis */
+        .analysis-text { 
+            line-height: 1.5; 
+            color: #eee; 
+            text-transform: none; 
+            font-size: 1.85rem; /* Larger font for GOAT Case */
+            font-family: 'VT323', monospace;
+        }
+
+        .quick-hits-text {
+            font-size: 1.6rem; /* Larger font for Quick Hits */
+            font-weight: bold;
+        }
+
+        /* Stat Labels */
+        .stat-label { font-size: 1.1rem; opacity: 0.6; display: block; margin-bottom: 3px; }
+        .stat-value { font-size: 1.6rem; font-weight: bold; display: block; }
+
+        .stat-tag { 
+            font-size: 1.6rem; 
+            border: 2px solid var(--team-color); 
+            padding: 6px 16px; 
+            margin: 0 10px 10px 0; 
+            color: var(--team-color); 
+            display: inline-block; 
+            font-weight: bold;
+        }
+
         #loader {
             position: absolute; width: 14px; height: 14px; border: 2px solid var(--team-color);
             right: 15px; top: 50%; transform: translateY(-50%); display: none;
         }
         .loading #loader { display: block; animation: square-draw 0.8s infinite linear; }
         @keyframes square-draw { 0% { transform: translateY(-50%) rotate(0deg); } 100% { transform: translateY(-50%) rotate(360deg); } }
-        #player-search { caret-color: var(--team-color); background: transparent; padding-left: 15px !important; }
-        .stat-label { font-size: 1.05rem; opacity: 0.6; display: block; margin-bottom: 3px; }
-        .stat-value { font-size: 1.5rem; font-weight: bold; display: block; }
-        .analysis-text { line-height: 1.4; color: #eee; text-transform: none; font-size: 1.4rem; }
-        .stat-tag { font-size: 1.1rem; border: 1px solid var(--team-color); padding: 4px 12px; margin: 0 8px 8px 0; color: var(--team-color); display: inline-block; }
     </style>
 </head>
 <body class="min-h-screen p-6" onclick="document.getElementById('player-search').focus()">
 
     <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-8">
+        <header class="text-center mb-10">
             <h1 class="text-6xl md:text-8xl font-normal">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
         </header>
 
-        <div class="relative max-w-xl mx-auto mb-8">
+        <div class="relative max-w-xl mx-auto mb-12">
             <div id="search-container" class="solid-box p-1 border-white/20">
                 <input id="player-search" type="text" autocomplete="off" autofocus placeholder="Enter Player Name..."
-                       class="w-full h-[45px] bg-transparent text-white outline-none font-bold text-xl uppercase">
+                       class="w-full h-[50px] bg-transparent text-white outline-none font-bold text-2xl uppercase">
                 <div id="loader"></div>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[250px] overflow-y-auto"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[300px] overflow-y-auto border-white/40"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-6 border-l-[9px] border-[var(--team-color)]">
-                <div class="flex flex-col md:flex-row justify-between items-start mb-6">
+            <div id="player-card" class="solid-box p-8 border-l-[12px] border-[var(--team-color)]">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start mb-8 border-b border-white/10 pb-6">
                     <div>
-                        <h2 id="p-name" class="text-5xl font-bold dynamic-neon mb-1"></h2>
-                        <p id="p-team" class="text-xl opacity-70"></p>
+                        <h2 id="p-name" class="text-6xl font-bold dynamic-neon mb-2"></h2>
+                        <p id="p-team" class="text-2xl opacity-70"></p>
                     </div>
-                    <div class="md:text-right">
-                        <span class="block text-sm opacity-60">CHAMPIONSHIPS / MVPS</span>
-                        <div id="p-acc" class="text-3xl text-yellow-500"></div>
+                    <div class="md:text-right mt-4 md:mt-0">
+                        <span class="block text-sm opacity-60">RINGS / MVPS</span>
+                        <div id="p-acc" class="text-4xl text-yellow-500 font-bold"></div>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white/5 p-4 border border-white/10">
-                    <div><span class="stat-label">PHYSICALS</span><span id="p-phys" class="stat-value"></span></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 bg-white/5 p-6 border border-white/10">
+                    <div><span class="stat-label">HEIGHT / WEIGHT</span><span id="p-phys" class="stat-value"></span></div>
                     <div><span class="stat-label">POSITION</span><span id="p-pos" class="stat-value"></span></div>
                     <div><span class="stat-label">ACTIVE SINCE</span><span id="p-exp" class="stat-value"></span></div>
                 </div>
 
-                <div class="mb-8">
-                    <h3 class="dynamic-neon text-2xl font-bold mb-4">▶ GOAT CASE</h3>
+                <div class="mb-12">
+                    <h3 class="dynamic-neon text-3xl font-bold mb-6">▶ GOAT CASE</h3>
                     <div id="p-case" class="analysis-text"></div>
                 </div>
 
                 <div>
-                    <span class="block text-xl dynamic-neon font-bold mb-3">QUICK HITS</span>
+                    <h3 class="dynamic-neon text-3xl font-bold mb-6">▶ QUICK HITS</h3>
                     <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
@@ -73,32 +114,47 @@
     </div>
 
     <script>
-        const TEAM_COLORS = { 'LAL': '#FDB927', 'GSW': '#1D428A', 'CHI': '#CE1141', 'BOS': '#007A33', 'PHI': '#006BB6', 'MIL': '#00471B' };
+        // Theme Colors - Warriors updated to Bright Yellow
+        const TEAM_COLORS = { 
+            'LAL': '#FDB927', 
+            'GSW': '#FFC72C', 
+            'CHI': '#CE1141', 
+            'BOS': '#007A33', 
+            'PHI': '#006BB6', 
+            'MIL': '#00471B',
+            'PHX': '#1D1160',
+            'SAS': '#C4CED4'
+        };
         
         const CURRENT_YEAR = 2026;
 
         const LOCAL_DB = [
+            { 
+                name: "Michael Jordan", team: "CHI", h: "6-6", w: "216", pos: "Guard", r: 6, m: 5, rky: 1984, end: 2003,
+                blurb: "Michael Jordan remains the gold standard for peak dominance and competitive will. His 6-0 record in the NBA Finals, featuring two separate three-peats, is the ultimate trump card in any debate. Jordan wasn't just the greatest scorer of his era with ten scoring titles; he was also an elite defensive stopper, winning the Defensive Player of the Year award while averaging over 30 points per game.\n\nHis cultural impact redefined the NBA on a global scale, but his case rests on his 'invincibility' during the 1990s. He possessed a psychological edge that broke opponents before the game even started. Whether it was the 'Flu Game' or his game-winning shot in Utah, Jordan's ability to deliver in the highest-stakes moments created a legacy of perfection that remains the benchmark for every superstar that followed.",
+                sigs: ["6X FINALS MVP", "10X SCORING CHAMP", "DPOY '88"] 
+            },
+            { 
+                name: "LeBron James", team: "LAL", h: "6-9", w: "250", pos: "Forward", r: 4, m: 4, rky: 2003, end: null,
+                blurb: "LeBron James' case centers on the greatest combination of peak dominance and unprecedented longevity the world has ever seen. As the NBA's all-time leading scorer and one of its top playmakers, he is arguably the most complete basketball player to ever step on the court. His ability to carry disparate rosters to the Finals—reaching ten total appearances—showcases a floor-raising ability that is unmatched by any peer.\n\nLeBron revolutionized the 'Point Forward' role, using his immense size and high-level IQ to manipulate defenses. From his defensive peak in Miami to his leadership in bringing a championship to Cleveland against a 73-win team, James has conquered every era he has played in. In 2026, he continues to defy the laws of aging, further cementing a legacy built on sustained greatness that no other player can feasibly replicate.",
+                sigs: ["ALL-TIME SCORER", "ELITE IQ", "13X ALL-NBA 1ST"] 
+            },
             { 
                 name: "Kareem Abdul-Jabbar", team: "LAL", h: "7-2", w: "225", pos: "Center", r: 6, m: 6, rky: 1969, end: 1989,
                 blurb: "Kareem Abdul-Jabbar's case for the greatest of all time is built on the most bulletproof resume in the history of the sport. Over two decades, he combined individual dominance with team success, winning six championships and a record six MVP awards. His Skyhook remains the most unstoppable weapon in basketball history, a shot that allowed him to remain an elite offensive force well into his 40s.\n\nBeyond the scoring, Kareem was a defensive titan and a brilliant passer for his size. He retired as the all-time leader in points, blocks, and MVP wins, having dominated the 70s as a lone superstar and the 80s as a co-captain of the Showtime Lakers. If the GOAT is defined by the total body of work across all levels of basketball, from high school to the pros, Kareem is the undisputed choice.",
                 sigs: ["SKYHOOK", "6X MVP", "REBOUNDING KING"] 
             },
             { 
-                name: "Michael Jordan", team: "CHI", h: "6-6", w: "216", pos: "Guard", r: 6, m: 5, rky: 1984, end: 2003,
-                blurb: "Michael Jordan is the gold standard for peak dominance and competitive will. His 6-0 record in the NBA Finals, featuring two separate three-peats, is the ultimate trump card in any debate. Jordan wasn't just the greatest scorer of his era with ten scoring titles; he was also an elite defensive stopper, winning the Defensive Player of the Year award while averaging over 30 points per game.\n\nHis cultural impact redefined the NBA on a global scale, but his case rests on his 'invincibility' during the 1990s. He possessed a psychological edge that broke opponents before the game even started. Whether it was the 'Flu Game' or his game-winning shot in Utah, Jordan's ability to deliver in the highest-stakes moments created a legacy of perfection that remains the benchmark for every superstar that followed.",
-                sigs: ["6X FINALS MVP", "10X SCORING CHAMP", "DPOY '88"] 
-            },
-            { 
-                name: "LeBron James", team: "LAL", h: "6-9", w: "250", pos: "Forward", r: 4, m: 4, rky: 2003, end: null,
-                blurb: "LeBron James' case centers on the greatest combination of peak dominance and unprecedented longevity the world has ever seen. As the NBA's all-time leading scorer and one of its top playmakers, he is arguably the most complete basketball player to ever step on the court. His ability to carry disparate rosters to the Finals—reaching ten total appearances—showcases a floor-raising ability that is unmatched by any peer.\n\nLeBron revolutionized the 'Point Forward' role, using his immense size and high-level IQ to manipulate defenses. From his defensive peak in Miami to his leadership in bringing a championship to Cleveland against a 73-win team, James has conquered every era he has played in. In 2026, he continues to defy the laws of aging, further cementing a legacy built on sustained greatness that no other player can feasibly replicate.",
-                sigs: ["40K POINT CLUB", "ELITE IQ", "13X ALL-NBA 1ST"] 
-            },
-            { 
                 name: "Stephen Curry", team: "GSW", h: "6-2", w: "185", pos: "Guard", r: 4, m: 2, rky: 2009, end: null,
                 blurb: "Stephen Curry is the greatest shooter in the history of the game, but his GOAT case is about more than just three-pointers. He fundamentally changed how basketball is played, coached, and defended at every level. By extending the floor to the logo, he created 'gravity'—a phenomenon where his mere presence on the court opens up layups for teammates, making him the most impactful offensive engine of the modern era.\n\nCurry led the Golden State Warriors to four championships and the winningest regular season in history. As the only unanimous MVP, he proved that a guard under 6'3\" could dominate a league historically ruled by giants. His unselfishness and ability to play off-ball distinguish him from other ball-dominant legends, making him the ultimate foundational piece for a winning culture.",
                 sigs: ["3-PT GOAT", "UNANIMOUS MVP", "4X CHAMP"] 
+            },
+            { 
+                name: "Bill Russell", team: "BOS", h: "6-10", w: "215", pos: "Center", r: 11, m: 5, rky: 1956, end: 1969,
+                blurb: "Bill Russell’s case is defined by the ultimate metric of professional sports: winning. As the centerpiece of a Boston Celtics dynasty that won 11 championships in 13 seasons, Russell remains the most successful team athlete in North American history. He didn't just win; he dictated the terms of the game through defensive mastery, shot-blocking, and psychological warfare that intimidated opponents long before they reached the rim.\n\nWhile his offensive statistics were modest compared to other legends, his impact on winning was immeasurable. Russell was a pioneer who prioritized team success above individual accolades, revolutionizing the center position as a defensive anchor and transition-starter. In any discussion where the GOAT is defined by championships and leadership under pressure, Russell stands alone at the top of the mountain.",
+                sigs: ["11 RINGS", "DEFENSIVE ANCHOR", "ULTIMATE LEADER"] 
             }
-            // ... I can provide the rest of the 75 players in the next prompt to ensure we don't hit text limits!
+            // Additional players (Kobe, Shaq, Bird, etc.) go here
         ];
 
         const input = document.getElementById('player-search');
@@ -124,7 +180,7 @@
             if (players.length === 0) { suggestionsDiv.classList.add('hidden'); return; }
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'p-3 hover:bg-[var(--team-color)] hover:text-black cursor-pointer font-bold';
+                div.className = 'p-4 hover:bg-[var(--team-color)] hover:text-black cursor-pointer font-bold text-xl';
                 div.innerText = p.name;
                 div.onclick = () => selectPlayer(p);
                 suggestionsDiv.appendChild(div);
@@ -135,7 +191,7 @@
         async function selectPlayer(p) {
             suggestionsDiv.classList.add('hidden');
             document.getElementById('search-container').classList.add('loading');
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 400));
             document.getElementById('search-container').classList.remove('loading');
             
             const color = TEAM_COLORS[p.team] || '#39FF14';
@@ -146,16 +202,17 @@
             document.getElementById('p-name').innerText = p.name;
             document.getElementById('p-team').innerText = `Primary Org: ${p.team}`;
             document.getElementById('p-acc').innerText = `🏆x${p.r} | MVPx${p.m}`;
-            document.getElementById('p-phys').innerText = `${p.h} / ${p.w} LBS`;
-            document.getElementById('p-pos').innerText = p.pos;
+            document.getElementById('p-phys').innerText = `${p.h} / ${p.w}`; // Height/Weight
+            document.getElementById('p-pos').innerText = p.pos; // Spelled out (Guard/Forward/Center)
             
             const endYear = p.end || CURRENT_YEAR;
             const totalSeasons = endYear - p.rky;
             document.getElementById('p-exp').innerText = `${p.rky} (${totalSeasons} TOTAL SEASONS)`;
             
-            // Handle 2-paragraph break
+            // GOAT Case with paragraph break
             document.getElementById('p-case').innerHTML = p.blurb.replace(/\n\n/g, '<br><br>');
             
+            // Quick Hits
             document.getElementById('p-sig').innerHTML = '';
             p.sigs.forEach(s => {
                 const span = document.createElement('span');
