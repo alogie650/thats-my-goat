@@ -8,28 +8,66 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         :root { --team-color: #39FF14; }
-        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 15px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: 'VT323', monospace; 
+            font-size: 15px; 
+            margin: 0; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em;
+            overflow-x: hidden;
+        }
+
         .solid-box { background: #000; border: 2px solid #333; position: relative; }
         .dynamic-neon { color: var(--team-color); transition: all 0.4s ease; }
         .gold-glow { color: #FFD700; }
-        #player-search { caret-color: transparent; background: transparent; letter-spacing: 0.15em; }
         
-        /* Fixed Cursor logic: Default to left: 16px */
-        #fake-cursor { position: absolute; width: 9px; height: 18px; background-color: var(--team-color); animation: blink 0.6s step-end infinite; pointer-events: none; top: 50%; transform: translateY(-50%); left: 16px; transition: background-color 0.3s ease; }
+        #player-search { 
+            caret-color: transparent; 
+            background: transparent; 
+            letter-spacing: 0.15em; 
+            padding-left: 28px !important; 
+        }
+        
+        #fake-cursor { 
+            position: absolute; 
+            width: 10px; 
+            height: 20px; 
+            background-color: var(--team-color); 
+            animation: blink 0.6s step-end infinite; 
+            pointer-events: none; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            left: 14px; 
+            z-index: 10;
+        }
         
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
         .stat-label { font-size: 1.05rem; opacity: 0.6; display: block; margin-bottom: 3px; }
         .stat-value { font-size: 1.5rem; font-weight: bold; display: block; }
         .analysis-text { line-height: 1.3; color: #eee; white-space: pre-wrap; }
-        .stat-tag { font-size: 1.35rem; border: 2px solid var(--team-color); padding: 9px 21px; margin-right: 12px; margin-bottom: 12px; color: var(--team-color); display: inline-block; font-weight: bold; }
-        .player-thumb { width: 112px; height: 112px; border: 3px solid var(--team-color); object-fit: cover; margin-right: 22px; }
+        
+        .stat-tag { 
+            font-size: 1.35rem; 
+            border: 2px solid var(--team-color); 
+            padding: 9px 21px; 
+            margin-right: 12px; 
+            margin-bottom: 12px; 
+            color: var(--team-color); 
+            display: inline-block; 
+            font-weight: bold; 
+        }
+
         .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
         .suggestion-item:hover { background: var(--team-color); color: #000; }
     </style>
 </head>
 <body class="min-h-screen p-3 md:p-9" onload="initTerminal()">
 
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-5xl mx-auto relative z-10">
         <header class="text-center mb-8">
             <h1 class="text-7xl md:text-9xl font-normal tracking-tighter">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
         </header>
@@ -38,7 +76,7 @@
             <div id="search-container" class="solid-box p-1 flex items-center border-white/20 focus-within:border-[var(--team-color)]">
                 <div class="relative flex-1 flex items-center h-[45px]">
                     <input id="player-search" type="text" autocomplete="off" autofocus placeholder="SEARCH PLAYER..."
-                           class="w-full p-3 bg-transparent text-white outline-none font-bold text-xl uppercase"
+                           class="w-full bg-transparent text-white outline-none font-bold text-xl uppercase"
                            oninput="handleInput(this)">
                     <div id="fake-cursor"></div>
                 </div>
@@ -49,14 +87,9 @@
         <div id="result-area" class="hidden">
             <div id="player-card" class="solid-box p-6 md:p-9 border-l-[9px] border-[var(--team-color)] transition-all duration-500">
                 <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-5">
-                    <div class="flex items-center">
-                        <div id="p-thumb-container" class="hidden">
-                            <img id="p-thumb" src="" class="player-thumb">
-                        </div>
-                        <div>
-                            <h2 id="p-name" class="text-4xl md:text-6xl font-bold dynamic-neon leading-none mb-1"></h2>
-                            <p id="p-team" class="text-2xl text-white opacity-70 tracking-widest"></p>
-                        </div>
+                    <div>
+                        <h2 id="p-name" class="text-4xl md:text-6xl font-bold dynamic-neon leading-none mb-1"></h2>
+                        <p id="p-team" class="text-2xl text-white opacity-70 tracking-widest"></p>
                     </div>
                     <div class="text-left md:text-right min-w-[210px]">
                         <div class="mb-4">
@@ -96,7 +129,7 @@
     <script>
         const TEAM_COLORS = {
             'LAL': '#FDB927', 
-            'GSW': '#FFFF00', // PURE ELECTRIC YELLOW
+            'GSW': '#FFFF00', 
             'PHX': '#E56020', 
             'DEN': '#FEC524', 
             'MIL': '#00471B', 
@@ -138,12 +171,11 @@
             const measurer = document.getElementById('text-measurer');
             const cursor = document.getElementById('fake-cursor');
             
-            // Logic to snap cursor to left if empty
             if (!input.value) {
-                cursor.style.left = "16px";
+                cursor.style.left = "14px";
             } else {
                 measurer.textContent = input.value;
-                cursor.style.left = (16 + measurer.offsetWidth) + "px";
+                cursor.style.left = (14 + measurer.offsetWidth) + "px";
             }
         }
 
@@ -186,14 +218,6 @@
             updateCursor();
             document.getElementById('result-area').classList.remove('hidden');
             
-            const thumbImg = document.getElementById('p-thumb');
-            if (p.image) {
-                thumbImg.src = p.image;
-                document.getElementById('p-thumb-container').classList.remove('hidden');
-            } else {
-                document.getElementById('p-thumb-container').classList.add('hidden');
-            }
-
             const sigContainer = document.getElementById('p-sig');
             sigContainer.innerHTML = '';
             (p.sigs || []).forEach(s => {
