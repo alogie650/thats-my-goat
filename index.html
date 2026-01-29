@@ -111,13 +111,13 @@
 
                 <div class="mb-10">
                     <h3 class="dynamic-neon text-4xl font-bold mb-6 flex items-center">
-                        <span class="mr-3 text-3xl">▶</span> THE GOAT CASE
+                        <span class="mr-3 text-3xl">▶</span> PLAYER ANALYSIS
                     </h3>
                     <div id="p-case" class="analysis-text text-2xl md:text-3xl italic border-l-3 border-white/20 pl-6"></div>
                 </div>
 
                 <div class="border-t border-white/10 pt-9">
-                    <span class="block text-3xl dynamic-neon font-bold mb-8">QUICK HITS</span>
+                    <span class="block text-3xl dynamic-neon font-bold mb-8">DATA POINTS</span>
                     <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
@@ -127,42 +127,19 @@
     <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 20px; letter-spacing: 0.15em;"></span>
 
     <script>
+        const API_KEY = "d5bf99e2-09d5-44fd-8e09-d00c9e679c6f";
+        
         const TEAM_COLORS = {
-            'LAL': '#FDB927', 
-            'GSW': '#FFFF00', 
-            'PHX': '#E56020', 
-            'DEN': '#FEC524', 
-            'MIL': '#00471B', 
-            'BOS': '#007A33',
-            'CHI': '#CE1141'
+            'LAL': '#FDB927', 'GSW': '#FFFF00', 'CHI': '#CE1141', 'SAS': '#C4CED4',
+            'BOS': '#007A33', 'PHX': '#E56020', 'MIL': '#00471B', 'DEN': '#FEC524'
         };
 
-        const LOCAL_DB = [
-            { 
-                first_name: "Stephen", last_name: "Curry", 
-                team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, 
-                height: "6-2", weight: "185", position: "Guard", rings: 4, mvps: 2, rookie: 2009, 
-                blurb: "THE GREATEST OFFENSIVE RADIUS IN HUMAN HISTORY. CURRY HAS REDEFINED BASKETBALL PHYSICS THROUGH THE CONCEPT OF OFFENSIVE GRAVITY.\n\nHIS UNMATCHED SKILL-PEAK ALLOWED HIM TO TRANSFORM THE THREE-POINT LINE FROM A SPECIALTY TOOL INTO THE SPORT'S PRIMARY WEAPON. UNLIKE GENETIC MARVELS, HIS DOMINANCE IS BUILT ON AN UNPARALLELED MASTERY OF COORDINATION AND RANGE.\n\nWITH THE ADDITION OF THE 2024 OLYMPIC GOLD 'GOLDEN DAGGER' PERFORMANCE, HE HAS SECURED EVERY MAJOR BASKETBALL ACCOLADE, PROVING THAT PURE SKILL CAN ALTER THE GEOMETRY OF THE ELITE LEVEL.", 
-                sigs: ["4K+ 3PM", "91% FT ALL-TIME", "UNANIMOUS MVP", "OLYMPIC GOLD 2024"] 
-            },
-            { 
-                first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, 
-                height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, 
-                blurb: "THE ULTIMATE BASKETBALL ARCHETYPE. LEBRON'S CASE RESTS ON THE UNPRECEDENTED INTERSECTION OF PEAK DOMINANCE AND SUPERNATURAL LONGEVITY.\n\nHE IS THE ONLY ENTITY IN HISTORY TO RECORD 40K POINTS, 11K REBOUNDS, AND 11K ASSISTS. HIS GOAT STATUS IS DEFINED BY CARRYING VARIED ROSTERS TO TEN NBA FINALS ACROSS THREE DISTINCT DECADES.\n\nHE IS NOT JUST A PLAYER; HE IS A TOTAL OFFENSIVE AND DEFENSIVE SYSTEM UNTO HIMSELF, REWRITING THE BIOLOGICAL LIMITS OF THE SPORT.", 
-                sigs: ["40K SCORING CLUB", "ALL-TIME VORP LEADER", "8 CONSECUTIVE FINALS", "PER: 27.1"] 
-            },
-            { 
-                first_name: "Michael", last_name: "Jordan", team: { full_name: "Chicago Bulls", abbreviation: "CHI" }, 
-                height: "6-6", weight: "216", position: "Guard", rings: 6, mvps: 5, rookie: 1984, 
-                blurb: "THE STANDARD OF EXCELLENCE. JORDAN'S CASE IS ANCHORED BY A PERFECT 6-0 RECORD IN THE NBA FINALS WITH SIX FINALS MVPS.\n\nHE COMBINED THE HIGHEST PEAK OF SCORING VOLUME WITH DPOY-LEVEL DEFENSIVE ANNIHILATION. BEYOND THE STATS, HIS GLOBAL IMPACT CREATED A LEGACY OF ABSOLUTE COMPETITIVE SUPERIORITY.\n\nHE REMAINS THE ARCHITECT OF THE MODERN NBA SUPERSTAR AND THE BENCHMARK AGAINST WHICH ALL GREATNESS IS MEASURED.", 
-                sigs: ["6-0 FINALS RECORD", "10X SCORING CHAMP", "DPOY 1988", "30.1 PPG CAREER"] 
-            }
+        const LOCAL_GOATS = [
+            { first_name: "Michael", last_name: "Jordan", team: { full_name: "Chicago Bulls", abbreviation: "CHI" }, height: "6-6", weight: "216", position: "Guard", rings: 6, mvps: 5, rookie: 1984, blurb: "THE STANDARD OF EXCELLENCE. 6-0 FINALS RECORD.", sigs: ["DPOY 1988", "10X SCORING CHAMP"] },
+            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, blurb: "UNPRECEDENTED LONGEVITY. THE ONLY 40K/11K/11K PLAYER.", sigs: ["ALL-TIME SCORING LEADER", "4X FINALS MVP"] }
         ];
 
-        function formatPosition(pos) {
-            const map = { 'G': 'Guard', 'F': 'Forward', 'C': 'Center' };
-            return map[pos.toUpperCase()] || pos;
-        }
+        let debounceTimer;
 
         function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
 
@@ -170,31 +147,45 @@
             const input = document.getElementById('player-search');
             const measurer = document.getElementById('text-measurer');
             const cursor = document.getElementById('fake-cursor');
-            
-            if (!input.value) {
-                cursor.style.left = "14px";
-            } else {
-                measurer.textContent = input.value;
-                cursor.style.left = (14 + measurer.offsetWidth) + "px";
-            }
+            measurer.textContent = input.value || "";
+            cursor.style.left = (14 + measurer.offsetWidth) + "px";
         }
 
-        function handleInput(el) { 
-            updateCursor(); 
+        async function handleInput(el) {
+            updateCursor();
             const val = el.value.trim().toLowerCase();
-            if (val.length < 2) { document.getElementById('suggestions').classList.add('hidden'); return; }
-            const localMatches = LOCAL_DB.filter(p => (p.first_name + " " + p.last_name).toLowerCase().includes(val));
-            renderSuggestions(localMatches);
+            if (val.length < 3) { document.getElementById('suggestions').classList.add('hidden'); return; }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                const localMatches = LOCAL_GOATS.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(val));
+                
+                try {
+                    const response = await fetch(`https://api.balldontlie.io/nba/v1/players?search=${val}`, {
+                        headers: { "Authorization": API_KEY }
+                    });
+                    const result = await response.json();
+                    renderSuggestions([...localMatches, ...result.data]);
+                } catch (e) {
+                    renderSuggestions(localMatches);
+                }
+            }, 300);
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
             if (players.length === 0) { dropdown.classList.add('hidden'); return; }
-            players.slice(0, 8).forEach(p => {
+
+            const seen = new Set();
+            players.forEach(p => {
+                const fullName = `${p.first_name} ${p.last_name}`;
+                if (seen.has(fullName)) return;
+                seen.add(fullName);
+
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-3 font-bold';
-                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${p.team.abbreviation}</span>`;
+                div.innerHTML = `${fullName} <span class="opacity-30 ml-2">// ${p.team?.abbreviation || 'NBA'}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -218,23 +209,25 @@
             updateCursor();
             document.getElementById('result-area').classList.remove('hidden');
             
-            const sigContainer = document.getElementById('p-sig');
-            sigContainer.innerHTML = '';
-            (p.sigs || []).forEach(s => {
+            document.getElementById('p-sig').innerHTML = '';
+            (p.sigs || ["ACTIVE ROSTER", "VALIDATED PLAYER DATA"]).forEach(s => {
                 const span = document.createElement('span');
                 span.className = 'stat-tag';
                 span.innerText = s;
-                sigContainer.appendChild(span);
+                document.getElementById('p-sig').appendChild(span);
             });
 
             await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 12);
-            await typeWriter(p.team.full_name, 'p-team', 10);
-            document.getElementById('p-rings').innerHTML = "🏆".repeat(p.rings || 0) || "NONE";
-            document.getElementById('p-mvps').innerHTML = "⭐".repeat(p.mvps || 0) || "NONE";
-            document.getElementById('p-phys').innerText = `${p.height} / ${p.weight} LBS`;
-            document.getElementById('p-pos').innerText = formatPosition(p.position);
-            document.getElementById('p-exp').innerText = `${p.rookie} (${2026 - p.rookie} SEASONS)`;
-            await typeWriter(p.blurb, 'p-case', 4);
+            await typeWriter(p.team?.full_name || "Free Agent", 'p-team', 10);
+            
+            document.getElementById('p-rings').innerHTML = p.rings ? "🏆".repeat(p.rings) : "N/A";
+            document.getElementById('p-mvps').innerHTML = p.mvps ? "⭐".repeat(p.mvps) : "N/A";
+            document.getElementById('p-phys').innerText = `${p.height || 'N/A'} / ${p.weight || 'N/A'} LBS`;
+            document.getElementById('p-pos').innerText = p.position || "Unknown";
+            document.getElementById('p-exp').innerText = p.rookie || "Active";
+            
+            const blurb = p.blurb || `DATA RETRIEVED FROM BALLDONTLIE API. ${p.first_name} ${p.last_name} IS CURRENTLY LISTED AS A ${p.position} FOR THE ${p.team?.full_name}.`;
+            await typeWriter(blurb, 'p-case', 4);
         }
     </script>
 </body>
