@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT</title>
+    <title>That's My GOAT // NBA 75 Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -32,9 +32,8 @@
         }
         
         @keyframes square-draw {
-            0% { transform: translateY(-50%) rotate(0deg); border-color: var(--team-color); }
-            50% { border-color: #fff; }
-            100% { transform: translateY(-50%) rotate(360deg); border-color: var(--team-color); }
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
         }
 
         #player-search { 
@@ -55,8 +54,8 @@
         .analysis-text { line-height: 1.3; color: #eee; white-space: pre-wrap; }
         
         .stat-tag { 
-            font-size: 1.35rem; border: 2px solid var(--team-color); 
-            padding: 9px 21px; margin-right: 12px; margin-bottom: 12px; 
+            font-size: 1.2rem; border: 2px solid var(--team-color); 
+            padding: 6px 16px; margin-right: 10px; margin-bottom: 10px; 
             color: var(--team-color); display: inline-block; font-weight: bold; 
         }
 
@@ -74,7 +73,7 @@
         <div class="relative max-w-xl mx-auto mb-8">
             <div id="search-container" class="solid-box p-1 flex items-center border-white/20 focus-within:border-[var(--team-color)]">
                 <div class="relative flex-1 flex items-center h-[45px]">
-                    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="SEARCH PLAYER..."
+                    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="COMMAND NAME..."
                            class="w-full bg-transparent text-white outline-none font-bold text-xl uppercase">
                     <div id="fake-cursor"></div>
                     <div id="loader"></div>
@@ -84,7 +83,7 @@
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-6 md:p-9 border-l-[9px] border-[var(--team-color)] transition-all duration-500">
+            <div id="player-card" class="solid-box p-6 md:p-9 border-l-[9px] border-[var(--team-color)]">
                 <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-5">
                     <div>
                         <h2 id="p-name" class="text-4xl md:text-6xl font-bold dynamic-neon leading-none mb-1"></h2>
@@ -105,18 +104,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-9 bg-white/5 p-6 border border-white/10">
                     <div><span class="stat-label">HEIGHT / WEIGHT</span><span id="p-phys" class="stat-value"></span></div>
                     <div><span class="stat-label">POSITION</span><span id="p-pos" class="stat-value"></span></div>
-                    <div><span class="stat-label">ACTIVE SINCE</span><span id="p-exp" class="stat-value"></span></div>
+                    <div><span class="stat-label">ROOKIE YEAR</span><span id="p-exp" class="stat-value"></span></div>
                 </div>
 
                 <div class="mb-10">
                     <h3 class="dynamic-neon text-4xl font-bold mb-6 flex items-center">
-                        <span class="mr-3 text-3xl">▶</span> THE GOAT CASE
+                        <span class="mr-3 text-3xl">▶</span> SYSTEM ANALYSIS
                     </h3>
                     <div id="p-case" class="analysis-text text-2xl md:text-3xl italic border-l-3 border-white/20 pl-6"></div>
                 </div>
 
                 <div class="border-t border-white/10 pt-9">
-                    <span class="block text-3xl dynamic-neon font-bold mb-8">QUICK HITS</span>
+                    <span class="block text-3xl dynamic-neon font-bold mb-8">CORE ATTRIBUTES</span>
                     <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
@@ -127,46 +126,150 @@
 
     <script>
         const TEAM_COLORS = {
-            'LAL': '#FDB927', 'GSW': '#FFFF00', 'PHX': '#E56020', 'DEN': '#FEC524', 
-            'MIL': '#00471B', 'BOS': '#007A33', 'CHI': '#CE1141', 'SAS': '#C4CED4', 'OKC': '#EF3340'
+            'LAL': '#FDB927', 'GSW': '#FFFF00', 'CHI': '#CE1141', 'BOS': '#007A33', 'SAS': '#C4CED4',
+            'MIL': '#00471B', 'PHI': '#006BB6', 'NYK': '#F58426', 'MIA': '#98002E', 'PHX': '#1D1160',
+            'HOU': '#CE1141', 'POR': '#E03A3E', 'DET': '#ED174C', 'MIN': '#0C2340', 'DAL': '#00538C'
         };
 
         const LOCAL_DB = [
-            { first_name: "Stephen", last_name: "Curry", team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, height: "6-2", weight: "185", position: "Guard", rings: 4, mvps: 2, rookie: 2009, blurb: "THE GREATEST OFFENSIVE RADIUS IN HUMAN HISTORY. CURRY HAS REDEFINED BASKETBALL PHYSICS THROUGH THE CONCEPT OF OFFENSIVE GRAVITY.\n\nWITH THE ADDITION OF THE 2024 OLYMPIC GOLD 'GOLDEN DAGGER' PERFORMANCE, HE HAS SECURED EVERY MAJOR BASKETBALL ACCOLADE.", sigs: ["4K+ 3PM", "91% FT ALL-TIME", "UNANIMOUS MVP", "OLYMPIC GOLD 2024"] },
-            { first_name: "Brandin", last_name: "Podziemski", team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, height: "6-5", weight: "204", position: "Guard", rings: 0, mvps: 0, rookie: 2023, blurb: "THE SWISS ARMY KNIFE OF THE NEW ERA. PODZIEMSKI’S VALUE IS MEASURED IN SYSTEMIC IMPACT AND BASKETBALL IQ RATHER THAN RAW ATHLETICISM.\n\nLEADING THE LEAGUE IN CHARGES DRAWN AS A ROOKIE, HE HAS SHOWN AN ELITE ABILITY TO READ THE GAME THREE STEPS AHEAD. HE IS THE EMBODIMENT OF THE MODERN WARRIORS' DNA.", sigs: ["CHARGE KING", "TRIPLE-DOUBLE THREAT", "ALL-ROOKIE 1ST TEAM"] },
-            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, blurb: "THE ULTIMATE BASKETBALL ARCHETYPE. LEBRON'S CASE RESTS ON THE UNPRECEDENTED INTERSECTION OF PEAK DOMINANCE AND SUPERNATURAL LONGEVITY.", sigs: ["40K SCORING CLUB", "8 CONSECUTIVE FINALS", "ALL-TIME VORP LEADER"] },
-            { first_name: "Victor", last_name: "Wembanyama", team: { full_name: "San Antonio Spurs", abbreviation: "SAS" }, height: "7-4", weight: "210", position: "Center/Forward", rings: 0, mvps: 0, rookie: 2023, blurb: "THE ALIEN. A PHYSICAL ANOMALY THAT COMBINES CENTER SIZE WITH GUARD SKILLS. WEMBY IS NOT JUST THE FUTURE; HE IS A REWRITE OF THE SPORT'S LIMITS.", sigs: ["BLOCK LEADER", "ROOKIE OF THE YEAR", "DPOY FINALIST"] }
-        ];
+    // A
+    { name: "Kareem Abdul-Jabbar", team: "LAL", h: "7-2", w: "225", pos: "C", r: 6, m: 6, rky: 1969, blurb: "The most decorated resume in basketball history. His Skyhook was the ultimate cheat code.", sigs: ["SKYHOOK", "6X MVP", "POINTS LEADER"] },
+    { name: "Ray Allen", team: "BOS", h: "6-5", w: "205", pos: "G", r: 2, m: 0, rky: 1996, blurb: "The shot-making artist. His corner 3 in 2013 is arguably the most clutch shot in NBA history.", sigs: ["3-PT SNIPER", "CONDITIONING", "CLUTCH"] },
+    { name: "Giannis Antetokounmpo", team: "MIL", h: "6-11", w: "242", pos: "F", r: 1, m: 2, rky: 2013, blurb: "Physical dominance unseen since Shaq, paired with a relentless motor and DPOY defense.", sigs: ["GREEK FREAK", "TRANSITION", "DPOY"] },
+    { name: "Carmelo Anthony", team: "NYK", h: "6-7", w: "238", pos: "F", r: 0, m: 0, rky: 2003, blurb: "One of the most versatile pure scorers ever. Could get a bucket from any spot on the floor.", sigs: ["JAB STEP", "PURE SCORER", "POST-UP"] },
+    { name: "Nate Archibald", team: "BOS", h: "6-1", w: "150", pos: "G", r: 1, m: 0, rky: 1970, blurb: "The only player to lead the league in PPG and APG in the same season. Tiny but mighty.", sigs: ["PLAYMAKER", "SPEED", "TINY"] },
+    { name: "Paul Arizin", team: "PHI", h: "6-4", w: "190", pos: "F", r: 1, m: 0, rky: 1950, blurb: "The pioneer of the modern jump shot. A dominant force in the league's early years.", sigs: ["JUMP SHOT", "SCORING", "10X ALL-STAR"] },
+    
+    // B
+    { name: "Charles Barkley", team: "PHX", h: "6-6", w: "252", pos: "F", r: 0, m: 1, rky: 1984, blurb: "The 'Round Mound of Rebound'. Dominated players half a foot taller through pure force.", sigs: ["REBOUNDING", "STRENGTH", "MVP '93"] },
+    { name: "Rick Barry", team: "GSW", h: "6-7", w: "205", pos: "F", r: 1, m: 0, rky: 1965, blurb: "Known for the underhand free throw, but was a lethal offensive weapon and Finals MVP.", sigs: ["UNDERHAND FT", "SCORING", "PLAYMAKING"] },
+    { name: "Elgin Baylor", team: "LAL", h: "6-5", w: "225", pos: "F", r: 0, m: 0, rky: 1958, blurb: "The first great aerial acrobat. He brought verticality to the game before it was standard.", sigs: ["AEROBATICS", "REBOUNDING", "SCORING"] },
+    { name: "Dave Bing", team: "DET", h: "6-3", w: "180", pos: "G", r: 0, m: 0, rky: 1966, blurb: "A prolific scoring guard who overcame a major eye injury to remain an elite performer.", sigs: ["RESILIENCE", "QUICKNESS", "SCORING"] },
+    { name: "Larry Bird", team: "BOS", h: "6-9", w: "220", pos: "F", r: 3, m: 3, rky: 1979, blurb: "The Hick from French Lick. Dominated through sheer skill, IQ, and legendary trash talk.", sigs: ["IQ", "SHOOTING", "TRASH TALK"] },
+    { name: "Kobe Bryant", team: "LAL", h: "6-6", w: "212", pos: "G", r: 5, m: 1, rky: 1996, blurb: "Mamba Mentality. The closest thing we ever saw to Michael Jordan's skill and obsession.", sigs: ["MAMBA", "SKILL", "5X CHAMP"] },
 
+    // C
+    { name: "Wilt Chamberlain", team: "PHI", h: "7-1", w: "275", pos: "C", r: 2, m: 4, rky: 1959, blurb: "The man of 100 points. Held records that will likely never be touched in any era.", sigs: ["100 PTS", "STRENGTH", "REBOUNDS"] },
+    { name: "Bob Cousy", team: "BOS", h: "6-1", w: "175", pos: "G", r: 6, m: 1, rky: 1950, blurb: "The Houdini of the Hardwood. Brought flash and creative passing to the early NBA.", sigs: ["PASSING", "DRIBBLING", "LEADERSHIP"] },
+    { name: "Dave Cowens", team: "BOS", h: "6-9", w: "230", pos: "C", r: 2, m: 1, rky: 1970, blurb: "The red-headed engine of the 70s Celtics. Played with unparalleled intensity.", sigs: ["INTENSITY", "DEFENSE", "TEAMWORK"] },
+    { name: "Billy Cunningham", team: "PHI", h: "6-6", w: "210", pos: "F", r: 1, m: 0, rky: 1965, blurb: "The Kangaroo Kid. Could leap with the best and was an elite all-around forward.", sigs: ["LEAPING", "ALL-AROUND", "HUSTLE"] },
+    { name: "Stephen Curry", team: "GSW", h: "6-2", w: "185", pos: "G", r: 4, m: 2, rky: 2009, blurb: "The Greatest Shooter Ever. Changed the entire landscape of professional basketball.", sigs: ["3-PT GOAT", "GRAVITY", "HANDLES"] },
+
+    // D
+    { name: "Anthony Davis", team: "LAL", h: "6-10", w: "253", pos: "F/C", r: 1, m: 0, rky: 2012, blurb: "A guard in a center's body. One of the most mobile defensive anchors in history.", sigs: ["BLOCKS", "MOBILITY", "BROW"] },
+    { name: "Dave DeBusschere", team: "NYK", h: "6-6", w: "220", pos: "F", r: 2, m: 0, rky: 1962, blurb: "The ultimate blue-collar defender. An essential piece of the Knicks' championship DNA.", sigs: ["LOCKDOWN", "TOUGHNESS", "REBOUNDING"] },
+    { name: "Clyde Drexler", team: "POR", h: "6-7", w: "210", pos: "G", r: 1, m: 0, rky: 1983, blurb: "Clyde the Glide. A smooth-flying scoring machine who was elite in transition.", sigs: ["GLIDE", "TRANSITION", "STEALS"] },
+    { name: "Tim Duncan", team: "SAS", h: "6-11", w: "250", pos: "F/C", r: 5, m: 2, rky: 1997, blurb: "The Big Fundamental. The anchor of a 20-year dynasty of excellence and consistency.", sigs: ["BANK SHOT", "IQ", "FUNDAMENTALS"] },
+    { name: "Kevin Durant", team: "PHX", h: "6-11", w: "240", pos: "F", r: 2, m: 1, rky: 2007, blurb: "The ultimate scoring specimen. A 7-footer with the handle and jumper of a guard.", sigs: ["SLIM REAPER", "SCORING", "EFFICIENCY"] },
+
+    // E
+    { name: "Julius Erving", team: "PHI", h: "6-7", w: "210", pos: "F", r: 1, m: 1, rky: 1971, blurb: "Dr. J. The man who brought the dunk to the mainstream and played with unmatched grace.", sigs: ["THE DUNK", "STYLE", "NBA/ABA LEGEND"] },
+    { name: "Patrick Ewing", team: "NYK", h: "7-0", w: "240", pos: "C", r: 0, m: 0, rky: 1985, blurb: "The heart of 90s New York basketball. A dominant defensive presence and scoring big.", sigs: ["POST-UP", "BLOCKS", "NY ICON"] },
+
+    // F
+    { name: "Walt Frazier", team: "NYK", h: "6-4", w: "200", pos: "G", r: 2, m: 0, rky: 1967, blurb: "Clyde. Cool, calm, and collected. A defensive master who thrived under pressure.", sigs: ["DEFENSE", "STYLE", "CLUTCH"] },
+
+    // G
+    { name: "Kevin Garnett", team: "BOS", h: "6-11", w: "240", pos: "F", r: 1, m: 1, rky: 1995, blurb: "The Big Ticket. Changed the intensity of the game with his vocal and physical defense.", sigs: ["ANYTHING IS POSSIBLE", "INTENSITY", "DPOY"] },
+    { name: "George Gervin", team: "SAS", h: "6-7", w: "180", pos: "G", r: 0, m: 0, rky: 1972, blurb: "The Iceman. Known for the finger roll and making high-volume scoring look effortless.", sigs: ["FINGER ROLL", "ICE COLD", "SCORING"] },
+    { name: "Hal Greer", team: "PHI", h: "6-2", w: "175", pos: "G", r: 1, m: 0, rky: 1958, blurb: "A consistent scoring threat and mid-range master who helped Wilt win in Philly.", sigs: ["MID-RANGE", "CONSISTENCY", "CHAMP"] },
+
+    // H
+    { name: "James Harden", team: "HOU", h: "6-5", w: "220", pos: "G", r: 0, m: 1, rky: 2009, blurb: "The Beard. Master of the step-back and one of the greatest offensive engines ever.", sigs: ["STEP-BACK", "ISO", "PLAYMAKING"] },
+    { name: "John Havlicek", team: "BOS", h: "6-5", w: "203", pos: "F/G", r: 8, m: 0, rky: 1962, blurb: "Hondo. His motor never stopped. Known for 'the steal' and winning 8 rings.", sigs: ["STAMINA", "8 RINGS", "THE STEAL"] },
+    { name: "Elvin Hayes", team: "WAS", h: "6-9", w: "235", pos: "F/C", r: 1, m: 0, rky: 1968, blurb: "The Big E. A scoring and rebounding machine with a trademark turnaround jumper.", sigs: ["TURNAROUND", "REBOUNDING", "IRON MAN"] },
+
+    // J
+    { name: "LeBron James", team: "LAL", h: "6-9", w: "250", pos: "F", r: 4, m: 4, rky: 2003, blurb: "The King. Unprecedented combination of size, IQ, and longevity. All-time scoring leader.", sigs: ["LONGEVITY", "IQ", "SCORING LEADER"] },
+    { name: "Magic Johnson", team: "LAL", h: "6-9", w: "220", pos: "G", r: 5, m: 3, rky: 1979, blurb: "The Greatest Point Guard. He made 'Showtime' possible and could play all 5 positions.", sigs: ["PASSING", "SHOWTIME", "WINNER"] },
+    { name: "Sam Jones", team: "BOS", h: "6-4", w: "198", pos: "G", r: 10, m: 0, rky: 1957, blurb: "The bank shot specialist. Won 10 championships, the second most in NBA history.", sigs: ["BANK SHOT", "10 RINGS", "CLUTCH"] },
+    { name: "Michael Jordan", team: "CHI", h: "6-6", w: "216", pos: "G", r: 6, m: 5, rky: 1984, blurb: "The GOAT. 6-0 in the Finals. The perfect basketball player in terms of skill and will.", sigs: ["AIR", "DEFENSE", "PERFECTION"] },
+
+    // K
+    { name: "Jason Kidd", team: "DAL", h: "6-4", w: "210", pos: "G", r: 1, m: 0, rky: 1994, blurb: "A walking triple-double who controlled the game without needing to score.", sigs: ["TRIPLE-DOUBLE", "IQ", "PASSING"] },
+    
+    // I
+    { name: "Allen Iverson", team: "PHI", h: "6-0", w: "165", pos: "G", r: 0, m: 1, rky: 1996, blurb: "The Answer. Pund-for-pound one of the greatest scorers and toughest players ever.", sigs: ["CROSSOVER", "HEART", "PRACTICE"] },
+
+    // L
+    { name: "Kawhi Leonard", team: "LAC", h: "6-7", w: "225", pos: "F", r: 2, m: 0, rky: 2011, blurb: "The Klaw. A two-way cyborg who shuts down superstars and hits massive playoff shots.", sigs: ["DEFENSE", "KLAW", "2X FMVP"] },
+    { name: "Damian Lillard", team: "MIL", h: "6-2", w: "195", pos: "G", r: 0, m: 0, rky: 2012, blurb: "Dame Time. Known for his unlimited range and ice-cold series-winning buzzers.", sigs: ["DAME TIME", "LOGOBOMB", "CLUTCH"] },
+    { name: "Jerry Lucas", team: "NYK", h: "6-8", w: "230", pos: "F/C", r: 1, m: 0, rky: 1963, blurb: "A rebounding genius with a photographic memory and a lethal outside shot.", sigs: ["REBOUNDING", "MEMORY", "IQ"] },
+
+    // M
+    { name: "Karl Malone", team: "UTA", h: "6-9", w: "250", pos: "F", r: 0, m: 2, rky: 1985, blurb: "The Mailman. The ultimate power forward who delivered points every single night.", sigs: ["MAILMAN", "STRENGTH", "PICK & ROLL"] },
+    { name: "Moses Malone", team: "PHI", h: "6-10", w: "260", pos: "C", r: 1, m: 3, rky: 1974, blurb: "The Chairman of the Boards. Relentless offensive rebounder and 3x MVP.", sigs: ["REBOUNDS", "STRENGTH", "FO-FO-FO"] },
+    { name: "Pete Maravich", team: "UTA", h: "6-5", w: "197", pos: "G", r: 0, m: 0, rky: 1970, blurb: "Pistol Pete. A creative wizard who was decades ahead of his time with his handles.", sigs: ["HANDLES", "PASSING", "PISTOL"] },
+    { name: "Bob McAdoo", team: "LAL", h: "6-9", w: "210", pos: "C/F", r: 2, m: 1, rky: 1972, blurb: "One of the smoothest shooting bigs ever. A 3x consecutive scoring champion.", sigs: ["SCORING", "SHOOTING", "CHAMP"] },
+    { name: "Kevin McHale", team: "BOS", h: "6-10", w: "210", pos: "F", r: 3, m: 0, rky: 1980, blurb: "The Torture Chamber. Had the most unstoppable low-post footwork in history.", sigs: ["POST MOVES", "DEFENSE", "WINGS PAN"] },
+    { name: "George Mikan", team: "LAL", h: "6-10", w: "245", pos: "C", r: 5, m: 0, rky: 1948, blurb: "The NBA's first true superstar center. They changed the rules to slow him down.", sigs: ["PIONEER", "MIKAN DRILL", "DOMINANCE"] },
+    { name: "Reggie Miller", team: "IND", h: "6-7", w: "185", pos: "G", r: 0, m: 0, rky: 1987, blurb: "The Knick-Killer. One of the greatest off-ball movers and shooters to ever play.", sigs: ["3-PT", "CLUTCH", "OFF-BALL"] },
+    { name: "Earl Monroe", team: "NYK", h: "6-3", w: "185", pos: "G", r: 1, m: 0, rky: 1967, blurb: "Earl the Pearl. His playground style and spin moves made him a New York legend.", sigs: ["PEARL", "SPIN MOVE", "STYLE"] },
+
+    // N
+    { name: "Steve Nash", team: "PHX", h: "6-3", w: "195", pos: "G", r: 0, m: 2, rky: 1996, blurb: "The engine of the 7-seconds-or-less Suns. A back-to-back MVP and passing genius.", sigs: ["PASSING", "7SOL", "50-40-90"] },
+    { name: "Dirk Nowitzki", team: "DAL", h: "7-0", w: "245", pos: "F", r: 1, m: 1, rky: 1998, blurb: "The greatest European player ever. His one-legged fadeaway changed the game.", sigs: ["FADEAWAY", "30K CLUB", "REVOLUTIONARY"] },
+
+    // O
+    { name: "Shaquille O'Neal", team: "LAL", h: "7-1", w: "325", pos: "C", r: 4, m: 1, rky: 1992, blurb: "The Most Dominant Ever. Broke backboards and shattered spirits in the paint.", sigs: ["POWER", "M.D.E.", "3X FMVP"] },
+    { name: "Hakeem Olajuwon", team: "HOU", h: "7-0", w: "255", pos: "C", r: 2, m: 1, rky: 1984, blurb: "The Dream. Possessed the most advanced footwork of any big man in history.", sigs: ["DREAM SHAKE", "BLOCKS", "SKILL"] },
+
+    // P
+    { name: "Robert Parish", team: "BOS", h: "7-1", w: "230", pos: "C", r: 4, m: 0, rky: 1976, blurb: "The Chief. Known for his high-arcing jumper and incredible longevity (21 seasons).", sigs: ["LONGEVITY", "JUMPER", "4 RINGS"] },
+    { name: "Chris Paul", team: "PHX", h: "6-0", w: "175", pos: "G", r: 0, m: 0, rky: 2005, blurb: "The Point God. A master of the mid-range and the surgical pick-and-roll.", sigs: ["CP3", "IQ", "STEALS"] },
+    { name: "Gary Payton", team: "SEA", h: "6-4", w: "180", pos: "G", r: 1, m: 0, rky: 1990, blurb: "The Glove. The only PG to win DPOY and one of the greatest trash talkers ever.", sigs: ["GLOVE", "DEFENSE", "DPOY"] },
+    { name: "Bob Pettit", team: "ATL", h: "6-9", w: "205", pos: "F/C", r: 1, m: 2, rky: 1954, blurb: "The first ever MVP. A relentless rebounder and scorer who dominated the 50s.", sigs: ["1ST MVP", "REBOUNDS", "50-PT GAME"] },
+    { name: "Paul Pierce", team: "BOS", h: "6-7", w: "235", pos: "F", r: 1, m: 0, rky: 1998, blurb: "The Truth. A master of pace and footwork who lived for the big moment.", sigs: ["TRUTH", "CLUTCH", "FOOTWORK"] },
+    { name: "Scottie Pippen", team: "CHI", h: "6-8", w: "210", pos: "F", r: 6, m: 0, rky: 1987, blurb: "The ultimate wing defender. The perfect complement to MJ and a 6x champion.", sigs: ["DEFENSE", "VERSATILITY", "6 RINGS"] },
+
+    // R
+    { name: "Willis Reed", team: "NYK", h: "6-9", w: "235", pos: "C/F", r: 2, m: 1, rky: 1964, blurb: "The Captain. His tunnel walk in Game 7 is the stuff of basketball legend.", sigs: ["LEADERSHIP", "TOUGHNESS", "FMVP"] },
+    { name: "Oscar Robertson", team: "MIL", h: "6-5", w: "220", pos: "G", r: 1, m: 1, rky: 1960, blurb: "The Big O. The first player to average a triple-double for an entire season.", sigs: ["TRIPLE-DOUBLE", "STRENGTH", "ALL-AROUND"] },
+    { name: "David Robinson", team: "SAS", h: "7-1", w: "235", pos: "C", r: 2, m: 1, rky: 1989, blurb: "The Admiral. One of the most athletic and disciplined centers to ever play.", sigs: ["ATHLETICISM", "BLOCKS", "MVP '95"] },
+    { name: "Dennis Rodman", team: "CHI", h: "6-7", w: "210", pos: "F", r: 5, m: 0, rky: 1986, blurb: "The Worm. The greatest pound-for-pound rebounder and defensive pest in history.", sigs: ["REBOUNDS", "DEFENSE", "5 RINGS"] },
+    { name: "Bill Russell", team: "BOS", h: "6-10", w: "215", pos: "C", r: 11, m: 5, rky: 1956, blurb: "The Ultimate Winner. 11 rings in 13 seasons. The greatest defensive anchor ever.", sigs: ["11 RINGS", "DEFENSE", "LEADERSHIP"] },
+
+    // S
+    { name: "Dolph Schayes", team: "PHI", h: "6-8", w: "220", pos: "F/C", r: 1, m: 0, rky: 1948, blurb: "A scoring and rebounding ironman who was the face of the Syracuse Nationals.", sigs: ["STAMINA", "SET SHOT", "REBOUNDS"] },
+    { name: "Bill Sharman", team: "BOS", h: "6-1", w: "175", pos: "G", r: 4, m: 0, rky: 1950, blurb: "A sharp-shooting guard who was one of the first elite free-throw shooters.", sigs: ["SHOOTING", "FT-PERCENT", "4 RINGS"] },
+    { name: "John Stockton", team: "UTA", h: "6-1", w: "170", pos: "G", r: 0, m: 0, rky: 1984, blurb: "The all-time leader in assists and steals. A master of the pick-and-roll.", sigs: ["ASSISTS", "STEALS", "DURABILITY"] },
+
+    // T
+    { name: "Isiah Thomas", team: "DET", h: "6-1", w: "180", pos: "G", r: 2, m: 0, rky: 1981, blurb: "Zeke. The leader of the Bad Boys and one of the toughest small guards ever.", sigs: ["TOUGHNESS", "HANDLES", "WINNER"] },
+    { name: "Nate Thurmond", team: "GSW", h: "6-11", w: "225", pos: "C/F", r: 0, m: 0, rky: 1963, blurb: "Nate the Great. The first player to record an official quadruple-double.", sigs: ["DEFENSE", "QUAD-DOUBLE", "REBOUNDS"] },
+
+    // U
+    { name: "Wes Unseld", team: "WAS", h: "6-7", w: "245", pos: "C/F", r: 1, m: 1, rky: 1968, blurb: "Won MVP and Rookie of the Year in the same season. The master of the outlet pass.", sigs: ["OUTLET PASS", "STRENGTH", "MVP"] },
+
+    // W
+    { name: "Dwyane Wade", team: "MIA", h: "6-4", w: "220", pos: "G", r: 3, m: 0, rky: 2003, blurb: "Flash. One of the greatest slashing guards and shot-blockers in history.", sigs: ["FLASH", "SLASHING", "3 RINGS"] },
+    { name: "Bill Walton", team: "POR", h: "6-11", w: "210", pos: "C/F", r: 2, m: 1, rky: 1974, blurb: "The most skilled passing big man of his era. Led Portland to a title in '77.", sigs: ["PASSING", "IQ", "MVP"] },
+    { name: "Jerry West", team: "LAL", h: "6-2", w: "175", pos: "G", r: 1, m: 0, rky: 1960, blurb: "The Logo. A scoring machine who was the first and only player to win FMVP on the losing team.", sigs: ["LOGO", "MR. CLUTCH", "SCORING"] },
+    { name: "Russell Westbrook", team: "LAC", h: "6-3", w: "200", pos: "G", r: 0, m: 1, rky: 2008, blurb: "Brodie. The triple-double king with a motor that simply never stops redlining.", sigs: ["TRIPLE-DOUBLE", "ATHLETICISM", "INTENSITY"] },
+    { name: "Lenny Wilkens", team: "SEA", h: "6-1", w: "180", pos: "G", r: 0, m: 0, rky: 1960, blurb: "A smooth lefty playmaker who excelled as both an elite player and an elite coach.", sigs: ["PLAYMAKER", "LEFTY", "IQ"] },
+    { name: "Dominique Wilkins", team: "ATL", h: "6-8", w: "215", pos: "F", r: 0, m: 0, rky: 1982, blurb: "The Human Highlight Film. One of the most explosive dunkers and scorers ever.", sigs: ["HIGHLIGHTS", "DUNK", "SCORING"] },
+    { name: "James Worthy", team: "LAL", h: "6-9", w: "225", pos: "F", r: 3, m: 0, rky: 1982, blurb: "Big Game James. A transition nightmare and one of the most clutch Lakers ever.", sigs: ["TRANSITION", "CLUTCH", "3 RINGS"] }
+];
+
+        // ADDING placeholder for remaining 50+ to save space but maintaining functional logic
         const input = document.getElementById('player-search');
         const suggestionsDiv = document.getElementById('suggestions');
 
-        // FORCE FOCUS
-        input.addEventListener('blur', () => {
-            setTimeout(() => input.focus(), 10);
-        });
+        input.addEventListener('blur', () => setTimeout(() => input.focus(), 10));
 
-        // HANDLE INPUT & AUTO-SEARCH ON ENTER
         input.addEventListener('input', (e) => {
             updateCursor();
             const val = e.target.value.trim().toLowerCase();
-            if (val.length < 2) { 
-                suggestionsDiv.classList.add('hidden'); 
-                return; 
-            }
-            const matches = LOCAL_DB.filter(p => (p.first_name + " " + p.last_name).toLowerCase().includes(val));
+            if (val.length < 2) { suggestionsDiv.classList.add('hidden'); return; }
+            const matches = LOCAL_DB.filter(p => p.name.toLowerCase().includes(val));
             renderSuggestions(matches);
         });
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim().toLowerCase();
-                const exactMatch = LOCAL_DB.find(p => (p.first_name + " " + p.last_name).toLowerCase() === val);
-                const partialMatch = LOCAL_DB.find(p => (p.first_name + " " + p.last_name).toLowerCase().includes(val));
-                
-                if (exactMatch || partialMatch) {
-                    selectPlayer(exactMatch || partialMatch);
-                }
+                const match = LOCAL_DB.find(p => p.name.toLowerCase().includes(val));
+                if (match) selectPlayer(match);
             }
         });
 
@@ -176,7 +279,7 @@
             players.slice(0, 8).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-3 font-bold';
-                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${p.team.abbreviation}</span>`;
+                div.innerHTML = `${p.name} <span class="opacity-30 ml-2">// ${p.team}</span>`;
                 div.onclick = () => selectPlayer(p);
                 suggestionsDiv.appendChild(div);
             });
@@ -186,49 +289,44 @@
         async function selectPlayer(p) {
             suggestionsDiv.classList.add('hidden');
             document.getElementById('search-container').classList.add('loading');
-            
-            // Artificial delay to show the square loader
-            await new Promise(r => setTimeout(r, 600));
+            await new Promise(r => setTimeout(r, 600)); // Animation window
             
             document.getElementById('search-container').classList.remove('loading');
-            const color = TEAM_COLORS[p.team?.abbreviation] || '#39FF14';
+            const color = TEAM_COLORS[p.team] || '#39FF14';
             document.documentElement.style.setProperty('--team-color', color);
             input.value = "";
             updateCursor();
             
             document.getElementById('result-area').classList.remove('hidden');
-            
-            const sigContainer = document.getElementById('p-sig');
-            sigContainer.innerHTML = '';
+            document.getElementById('p-sig').innerHTML = '';
             p.sigs.forEach(s => {
                 const span = document.createElement('span');
                 span.className = 'stat-tag';
                 span.innerText = s;
-                sigContainer.appendChild(span);
+                document.getElementById('p-sig').appendChild(span);
             });
 
-            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 12);
-            await typeWriter(p.team.full_name, 'p-team', 10);
-            document.getElementById('p-rings').innerHTML = "🏆".repeat(p.rings) || "NONE";
-            document.getElementById('p-mvps').innerHTML = "⭐".repeat(p.mvps) || "NONE";
-            document.getElementById('p-phys').innerText = `${p.height} / ${p.weight} LBS`;
-            document.getElementById('p-pos').innerText = p.position;
-            document.getElementById('p-exp').innerText = `${p.rookie} (${2026 - p.rookie} SEASONS)`;
+            await typeWriter(p.name, 'p-name', 12);
+            await typeWriter(`TEAM ID: ${p.team}`, 'p-team', 10);
+            document.getElementById('p-rings').innerHTML = "🏆".repeat(p.r) || "NONE";
+            document.getElementById('p-mvps').innerHTML = "★".repeat(p.m) || "NONE";
+            document.getElementById('p-phys').innerText = `${p.h} / ${p.w} LBS`;
+            document.getElementById('p-pos').innerText = p.pos;
+            document.getElementById('p-exp').innerText = p.rky;
             await typeWriter(p.blurb, 'p-case', 4);
         }
 
         function updateCursor() {
-            const measurer = document.getElementById('text-measurer');
-            const cursor = document.getElementById('fake-cursor');
-            measurer.textContent = input.value;
-            cursor.style.left = (14 + measurer.offsetWidth) + "px";
+            const m = document.getElementById('text-measurer');
+            m.textContent = input.value;
+            document.getElementById('fake-cursor').style.left = (14 + m.offsetWidth) + "px";
         }
 
-        async function typeWriter(text, elementId, speed = 8) {
-            const el = document.getElementById(elementId);
+        async function typeWriter(text, id, speed) {
+            const el = document.getElementById(id);
             el.innerHTML = "";
-            for (let i = 0; i < text.length; i++) {
-                el.innerHTML += text.charAt(i);
+            for (let char of text) {
+                el.innerHTML += char;
                 await new Promise(r => setTimeout(r, speed));
             }
         }
