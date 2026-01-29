@@ -6,61 +6,77 @@
     <title>That's My GOAT // NBA 75 Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        
-        :root { --team-color: #39FF14; }
-        
-        body { 
-            background-color: #000; 
-            color: #fff; 
-            font-family: 'VT323', monospace; 
-            text-transform: uppercase; 
-            letter-spacing: 0.1em; 
-        }
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    
+    :root { --team-color: #39FF14; }
+    
+    body { 
+        background-color: #000; 
+        color: #fff; 
+        font-family: 'VT323', monospace; 
+        text-transform: uppercase; 
+        letter-spacing: 0.1em; 
+    }
 
-        .solid-box { background: #000; border: 2px solid #333; position: relative; }
-        .dynamic-neon { color: var(--team-color); }
-        
-        #player-search { 
-            caret-color: var(--team-color); 
-            background: transparent; 
-            padding-left: 15px !important; 
-        }
+    /* Narrower, more focused Player Card */
+    #player-card { 
+        max-width: 850px; /* Narrower width */
+        margin: 0 auto;
+        background: #000; 
+        border: 2px solid #333; 
+        border-left: 12px solid var(--team-color);
+        padding: 2.5rem; 
+    }
 
-        /* Large Font for GOAT Case */
-        .analysis-text { 
-            line-height: 1.4; 
-            color: #eee; 
-            text-transform: none; 
-            font-size: 2rem; /* Increased size */
-        }
+    /* The Flashing Terminal Cursor */
+    .cursor {
+        display: inline-block;
+        width: 12px;
+        height: 24px;
+        background-color: var(--team-color);
+        margin-left: 4px;
+        animation: blink 1s step-end infinite;
+        vertical-align: middle;
+    }
 
-        /* Large Font for Quick Hits Labels */
-        .quick-hits-label {
-            font-size: 2.2rem;
-            font-weight: bold;
-        }
+    @keyframes blink {
+        from, to { background-color: transparent; }
+        50% { background-color: var(--team-color); }
+    }
 
-        .stat-label { font-size: 1.2rem; opacity: 0.6; display: block; margin-bottom: 3px; }
-        .stat-value { font-size: 1.8rem; font-weight: bold; display: block; }
+    /* Text Scaling */
+    .analysis-text { 
+        line-height: 1.4; 
+        color: #eee; 
+        text-transform: none; 
+        font-size: 1.9rem; 
+    }
 
-        .stat-tag { 
-            font-size: 1.8rem; /* Increased size */
-            border: 2px solid var(--team-color); 
-            padding: 8px 18px; 
-            margin: 0 12px 12px 0; 
-            color: var(--team-color); 
-            display: inline-block; 
-            font-weight: bold;
-        }
+    .quick-hits-label {
+        font-size: 2.2rem;
+        font-weight: bold;
+    }
 
-        #loader {
-            position: absolute; width: 14px; height: 14px; border: 2px solid var(--team-color);
-            right: 15px; top: 50%; transform: translateY(-50%); display: none;
-        }
-        .loading #loader { display: block; animation: square-draw 0.8s infinite linear; }
-        @keyframes square-draw { 0% { transform: translateY(-50%) rotate(0deg); } 100% { transform: translateY(-50%) rotate(360deg); } }
-    </style>
+    .stat-tag { 
+        font-size: 1.7rem; 
+        border: 2px solid var(--team-color); 
+        padding: 6px 14px; 
+        margin: 0 10px 10px 0; 
+        color: var(--team-color); 
+        display: inline-block; 
+    }
+
+    #player-search { 
+        caret-color: transparent; /* Hide default cursor to use custom one */
+        background: transparent; 
+    }
+</style>
+
+<div id="search-container" class="solid-box p-1 border-white/20 flex items-center">
+    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="Enter Player Name..."
+           class="w-full h-[60px] bg-transparent text-white outline-none font-bold text-3xl uppercase">
+    <span class="cursor mr-4"></span>
+</div>
 </head>
 <body class="min-h-screen p-6 md:p-12" onclick="document.getElementById('player-search').focus()">
 
