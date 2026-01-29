@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>That's My GOAT</title>
+    <title>That's My GOAT // NBA 75 Index</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         
         :root { --team-color: #39FF14; }
         
@@ -21,36 +21,34 @@
         .solid-box { background: #000; border: 2px solid #333; position: relative; }
         .dynamic-neon { color: var(--team-color); }
         
-        /* Search Bar Placeholder Reverted */
         #player-search { 
             caret-color: var(--team-color); 
             background: transparent; 
             padding-left: 15px !important; 
         }
 
-        /* Large Font for GOAT Case & Analysis */
+        /* Large Font for GOAT Case */
         .analysis-text { 
-            line-height: 1.5; 
+            line-height: 1.4; 
             color: #eee; 
             text-transform: none; 
-            font-size: 1.85rem; /* Larger font for GOAT Case */
-            font-family: 'VT323', monospace;
+            font-size: 2rem; /* Increased size */
         }
 
-        .quick-hits-text {
-            font-size: 1.6rem; /* Larger font for Quick Hits */
+        /* Large Font for Quick Hits Labels */
+        .quick-hits-label {
+            font-size: 2.2rem;
             font-weight: bold;
         }
 
-        /* Stat Labels */
-        .stat-label { font-size: 1.1rem; opacity: 0.6; display: block; margin-bottom: 3px; }
-        .stat-value { font-size: 1.6rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 1.2rem; opacity: 0.6; display: block; margin-bottom: 3px; }
+        .stat-value { font-size: 1.8rem; font-weight: bold; display: block; }
 
         .stat-tag { 
-            font-size: 1.6rem; 
+            font-size: 1.8rem; /* Increased size */
             border: 2px solid var(--team-color); 
-            padding: 6px 16px; 
-            margin: 0 10px 10px 0; 
+            padding: 8px 18px; 
+            margin: 0 12px 12px 0; 
             color: var(--team-color); 
             display: inline-block; 
             font-weight: bold;
@@ -64,49 +62,55 @@
         @keyframes square-draw { 0% { transform: translateY(-50%) rotate(0deg); } 100% { transform: translateY(-50%) rotate(360deg); } }
     </style>
 </head>
-<body class="min-h-screen p-6" onclick="document.getElementById('player-search').focus()">
+<body class="min-h-screen p-6 md:p-12" onclick="document.getElementById('player-search').focus()">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-6xl md:text-8xl font-normal">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-7xl md:text-9xl font-normal">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
         </header>
 
-        <div class="relative max-w-xl mx-auto mb-12">
+        <div class="relative max-w-2xl mx-auto mb-16">
             <div id="search-container" class="solid-box p-1 border-white/20">
                 <input id="player-search" type="text" autocomplete="off" autofocus placeholder="Enter Player Name..."
-                       class="w-full h-[50px] bg-transparent text-white outline-none font-bold text-2xl uppercase">
+                       class="w-full h-[60px] bg-transparent text-white outline-none font-bold text-3xl uppercase">
                 <div id="loader"></div>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[300px] overflow-y-auto border-white/40"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[350px] overflow-y-auto border-white/40"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 border-l-[12px] border-[var(--team-color)]">
+            <div id="player-card" class="solid-box p-10 border-l-[15px] border-[var(--team-color)]">
                 
-                <div class="flex flex-col md:flex-row justify-between items-start mb-8 border-b border-white/10 pb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start mb-10 border-b border-white/10 pb-8">
                     <div>
-                        <h2 id="p-name" class="text-6xl font-bold dynamic-neon mb-2"></h2>
-                        <p id="p-team" class="text-2xl opacity-70"></p>
+                        <h2 id="p-name" class="text-7xl font-bold dynamic-neon mb-2"></h2>
+                        <p id="p-team" class="text-3xl opacity-70 tracking-widest"></p>
                     </div>
-                    <div class="md:text-right mt-4 md:mt-0">
-                        <span class="block text-sm opacity-60">RINGS / MVPS</span>
-                        <div id="p-acc" class="text-4xl text-yellow-500 font-bold"></div>
+                    <div class="md:text-right mt-6 md:mt-0">
+                        <div class="mb-4">
+                            <span class="block text-xl opacity-60 mb-2">CHAMPIONSHIPS</span>
+                            <div id="p-rings" class="text-5xl text-yellow-500"></div>
+                        </div>
+                        <div>
+                            <span class="block text-xl opacity-60 mb-2">LEAGUE MVPS</span>
+                            <div id="p-mvps" class="text-5xl dynamic-neon"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 bg-white/5 p-6 border border-white/10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 bg-white/5 p-8 border border-white/10">
                     <div><span class="stat-label">HEIGHT / WEIGHT</span><span id="p-phys" class="stat-value"></span></div>
                     <div><span class="stat-label">POSITION</span><span id="p-pos" class="stat-value"></span></div>
                     <div><span class="stat-label">ACTIVE SINCE</span><span id="p-exp" class="stat-value"></span></div>
                 </div>
 
-                <div class="mb-12">
-                    <h3 class="dynamic-neon text-3xl font-bold mb-6">▶ GOAT CASE</h3>
+                <div class="mb-14">
+                    <h3 class="dynamic-neon text-4xl font-bold mb-8">▶ GOAT CASE</h3>
                     <div id="p-case" class="analysis-text"></div>
                 </div>
 
                 <div>
-                    <h3 class="dynamic-neon text-3xl font-bold mb-6">▶ QUICK HITS</h3>
+                    <h3 class="dynamic-neon quick-hits-label mb-8">▶ QUICK HITS</h3>
                     <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
@@ -114,16 +118,15 @@
     </div>
 
     <script>
-        // Theme Colors - Warriors updated to Bright Yellow
-        const TEAM_COLORS = { 
-            'LAL': '#FDB927', 
-            'GSW': '#FFC72C', 
-            'CHI': '#CE1141', 
-            'BOS': '#007A33', 
-            'PHI': '#006BB6', 
-            'MIL': '#00471B',
-            'PHX': '#1D1160',
-            'SAS': '#C4CED4'
+        const TEAM_MAP = {
+            'LAL': { name: 'Los Angeles Lakers', color: '#FDB927' },
+            'GSW': { name: 'Golden State Warriors', color: '#FFC72C' },
+            'CHI': { name: 'Chicago Bulls', color: '#CE1141' },
+            'BOS': { name: 'Boston Celtics', color: '#007A33' },
+            'PHI': { name: 'Philadelphia 76ers', color: '#006BB6' },
+            'MIL': { name: 'Milwaukee Bucks', color: '#00471B' },
+            'PHX': { name: 'Phoenix Suns', color: '#1D1160' },
+            'SAS': { name: 'San Antonio Spurs', color: '#C4CED4' }
         };
         
         const CURRENT_YEAR = 2026;
@@ -148,13 +151,7 @@
                 name: "Stephen Curry", team: "GSW", h: "6-2", w: "185", pos: "Guard", r: 4, m: 2, rky: 2009, end: null,
                 blurb: "Stephen Curry is the greatest shooter in the history of the game, but his GOAT case is about more than just three-pointers. He fundamentally changed how basketball is played, coached, and defended at every level. By extending the floor to the logo, he created 'gravity'—a phenomenon where his mere presence on the court opens up layups for teammates, making him the most impactful offensive engine of the modern era.\n\nCurry led the Golden State Warriors to four championships and the winningest regular season in history. As the only unanimous MVP, he proved that a guard under 6'3\" could dominate a league historically ruled by giants. His unselfishness and ability to play off-ball distinguish him from other ball-dominant legends, making him the ultimate foundational piece for a winning culture.",
                 sigs: ["3-PT GOAT", "UNANIMOUS MVP", "4X CHAMP"] 
-            },
-            { 
-                name: "Bill Russell", team: "BOS", h: "6-10", w: "215", pos: "Center", r: 11, m: 5, rky: 1956, end: 1969,
-                blurb: "Bill Russell’s case is defined by the ultimate metric of professional sports: winning. As the centerpiece of a Boston Celtics dynasty that won 11 championships in 13 seasons, Russell remains the most successful team athlete in North American history. He didn't just win; he dictated the terms of the game through defensive mastery, shot-blocking, and psychological warfare that intimidated opponents long before they reached the rim.\n\nWhile his offensive statistics were modest compared to other legends, his impact on winning was immeasurable. Russell was a pioneer who prioritized team success above individual accolades, revolutionizing the center position as a defensive anchor and transition-starter. In any discussion where the GOAT is defined by championships and leadership under pressure, Russell stands alone at the top of the mountain.",
-                sigs: ["11 RINGS", "DEFENSIVE ANCHOR", "ULTIMATE LEADER"] 
             }
-            // Additional players (Kobe, Shaq, Bird, etc.) go here
         ];
 
         const input = document.getElementById('player-search');
@@ -180,7 +177,7 @@
             if (players.length === 0) { suggestionsDiv.classList.add('hidden'); return; }
             players.slice(0, 5).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'p-4 hover:bg-[var(--team-color)] hover:text-black cursor-pointer font-bold text-xl';
+                div.className = 'p-4 hover:bg-[var(--team-color)] hover:text-black cursor-pointer font-bold text-2xl';
                 div.innerText = p.name;
                 div.onclick = () => selectPlayer(p);
                 suggestionsDiv.appendChild(div);
@@ -191,28 +188,30 @@
         async function selectPlayer(p) {
             suggestionsDiv.classList.add('hidden');
             document.getElementById('search-container').classList.add('loading');
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 450));
             document.getElementById('search-container').classList.remove('loading');
             
-            const color = TEAM_COLORS[p.team] || '#39FF14';
-            document.documentElement.style.setProperty('--team-color', color);
+            const teamData = TEAM_MAP[p.team] || { name: p.team, color: '#39FF14' };
+            document.documentElement.style.setProperty('--team-color', teamData.color);
             input.value = "";
             
             document.getElementById('result-area').classList.remove('hidden');
             document.getElementById('p-name').innerText = p.name;
-            document.getElementById('p-team').innerText = `Primary Org: ${p.team}`;
-            document.getElementById('p-acc').innerText = `🏆x${p.r} | MVPx${p.m}`;
-            document.getElementById('p-phys').innerText = `${p.h} / ${p.w}`; // Height/Weight
-            document.getElementById('p-pos').innerText = p.pos; // Spelled out (Guard/Forward/Center)
+            document.getElementById('p-team').innerText = teamData.name;
+            
+            // Re-adding Icons
+            document.getElementById('p-rings').innerHTML = p.r > 0 ? "🏆".repeat(p.r) : "NONE";
+            document.getElementById('p-mvps').innerHTML = p.m > 0 ? "★".repeat(p.m) : "NONE";
+            
+            document.getElementById('p-phys').innerText = `${p.h} / ${p.w}`;
+            document.getElementById('p-pos').innerText = p.pos;
             
             const endYear = p.end || CURRENT_YEAR;
             const totalSeasons = endYear - p.rky;
             document.getElementById('p-exp').innerText = `${p.rky} (${totalSeasons} TOTAL SEASONS)`;
             
-            // GOAT Case with paragraph break
             document.getElementById('p-case').innerHTML = p.blurb.replace(/\n\n/g, '<br><br>');
             
-            // Quick Hits
             document.getElementById('p-sig').innerHTML = '';
             p.sigs.forEach(s => {
                 const span = document.createElement('span');
