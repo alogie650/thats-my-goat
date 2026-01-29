@@ -134,9 +134,10 @@
             'BOS': '#007A33', 'PHX': '#E56020', 'MIL': '#00471B', 'DEN': '#FEC524'
         };
 
-        const LOCAL_GOATS = [
+        const LOCAL_DB = [
             { first_name: "Michael", last_name: "Jordan", team: { full_name: "Chicago Bulls", abbreviation: "CHI" }, height: "6-6", weight: "216", position: "Guard", rings: 6, mvps: 5, rookie: 1984, blurb: "THE STANDARD OF EXCELLENCE. 6-0 FINALS RECORD.", sigs: ["DPOY 1988", "10X SCORING CHAMP"] },
-            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, blurb: "UNPRECEDENTED LONGEVITY. THE ONLY 40K/11K/11K PLAYER.", sigs: ["ALL-TIME SCORING LEADER", "4X FINALS MVP"] }
+            { first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, blurb: "UNPRECEDENTED LONGEVITY. THE ONLY 40K/11K/11K PLAYER.", sigs: ["ALL-TIME SCORING LEADER", "4X FINALS MVP"] },
+            { first_name: "Kareem", last_name: "Abdul-Jabbar", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, height: "7-2", weight: "225", position: "Center", rings: 6, mvps: 6, rookie: 1969, blurb: "THE SKYHOOK REMAINS THE MOST UNGUARDABLE SHOT IN HISTORY.", sigs: ["6X MVP", "38,387 PTS"] }
         ];
 
         let debounceTimer;
@@ -151,41 +152,59 @@
             cursor.style.left = (14 + measurer.offsetWidth) + "px";
         }
 
-        async function handleInput(el) {
+        function handleInput(el) {
             updateCursor();
             const val = el.value.trim().toLowerCase();
-            if (val.length < 3) { document.getElementById('suggestions').classList.add('hidden'); return; }
+            if (val.length < 2) { 
+                document.getElementById('suggestions').classList.add('hidden'); 
+                return; 
+            }
 
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(async () => {
-                const localMatches = LOCAL_GOATS.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(val));
+                // 1. Get Local Matches
+                const localMatches = LOCAL_DB.filter(p => 
+                    `${p.first_name} ${p.last_name}`.toLowerCase().includes(val)
+                );
                 
+                // 2. Get API Matches
+                let apiMatches = [];
                 try {
                     const response = await fetch(`https://api.balldontlie.io/nba/v1/players?search=${val}`, {
                         headers: { "Authorization": API_KEY }
                     });
                     const result = await response.json();
-                    renderSuggestions([...localMatches, ...result.data]);
+                    apiMatches = result.data || [];
                 } catch (e) {
-                    renderSuggestions(localMatches);
+                    console.error("API Error", e);
                 }
+
+                // 3. Combine and Render
+                renderSuggestions(localMatches, apiMatches);
             }, 300);
         }
 
-        function renderSuggestions(players) {
+        function renderSuggestions(locals, apis) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
-            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
+            
+            const combined = [...locals];
+            const seen = new Set(locals.map(l => `${l.first_name} ${l.last_name}`.toLowerCase()));
 
-            const seen = new Set();
-            players.forEach(p => {
-                const fullName = `${p.first_name} ${p.last_name}`;
-                if (seen.has(fullName)) return;
-                seen.add(fullName);
+            apis.forEach(p => {
+                const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+                if (!seen.has(fullName)) {
+                    combined.push(p);
+                    seen.add(fullName);
+                }
+            });
 
+            if (combined.length === 0) { dropdown.classList.add('hidden'); return; }
+
+            combined.slice(0, 10).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item p-3 font-bold';
-                div.innerHTML = `${fullName} <span class="opacity-30 ml-2">// ${p.team?.abbreviation || 'NBA'}</span>`;
+                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${p.team?.abbreviation || 'NBA'}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
@@ -210,7 +229,7 @@
             document.getElementById('result-area').classList.remove('hidden');
             
             document.getElementById('p-sig').innerHTML = '';
-            (p.sigs || ["ACTIVE ROSTER", "VALIDATED PLAYER DATA"]).forEach(s => {
+            (p.sigs || ["NBA DATA SOURCE", "ACTIVE STATUS"]).forEach(s => {
                 const span = document.createElement('span');
                 span.className = 'stat-tag';
                 span.innerText = s;
@@ -222,11 +241,11 @@
             
             document.getElementById('p-rings').innerHTML = p.rings ? "🏆".repeat(p.rings) : "N/A";
             document.getElementById('p-mvps').innerHTML = p.mvps ? "⭐".repeat(p.mvps) : "N/A";
-            document.getElementById('p-phys').innerText = `${p.height || 'N/A'} / ${p.weight || 'N/A'} LBS`;
-            document.getElementById('p-pos').innerText = p.position || "Unknown";
+            document.getElementById('p-phys').innerText = `${p.height || '??'} / ${p.weight || '??'} LBS`;
+            document.getElementById('p-pos').innerText = p.position || "N/A";
             document.getElementById('p-exp').innerText = p.rookie || "Active";
             
-            const blurb = p.blurb || `DATA RETRIEVED FROM BALLDONTLIE API. ${p.first_name} ${p.last_name} IS CURRENTLY LISTED AS A ${p.position} FOR THE ${p.team?.full_name}.`;
+            const blurb = p.blurb || `DATA RETRIEVED FROM LIVE API. ${p.first_name} ${p.last_name} IS A ${p.position} CURRENTLY PLAYING FOR THE ${p.team?.full_name}.`;
             await typeWriter(blurb, 'p-case', 4);
         }
     </script>
