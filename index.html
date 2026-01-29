@@ -13,7 +13,10 @@
         .dynamic-neon { color: var(--team-color); transition: all 0.4s ease; }
         .gold-glow { color: #FFD700; }
         #player-search { caret-color: transparent; background: transparent; letter-spacing: 0.15em; }
+        
+        /* Fixed Cursor logic: Default to left: 16px */
         #fake-cursor { position: absolute; width: 9px; height: 18px; background-color: var(--team-color); animation: blink 0.6s step-end infinite; pointer-events: none; top: 50%; transform: translateY(-50%); left: 16px; transition: background-color 0.3s ease; }
+        
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .stat-label { font-size: 1.05rem; opacity: 0.6; display: block; margin-bottom: 3px; }
         .stat-value { font-size: 1.5rem; font-weight: bold; display: block; }
@@ -93,7 +96,7 @@
     <script>
         const TEAM_COLORS = {
             'LAL': '#FDB927', 
-            'GSW': '#FFFF00', // BRIGHT ELECTRIC YELLOW
+            'GSW': '#FFFF00', // PURE ELECTRIC YELLOW
             'PHX': '#E56020', 
             'DEN': '#FEC524', 
             'MIL': '#00471B', 
@@ -133,8 +136,15 @@
         function updateCursor() {
             const input = document.getElementById('player-search');
             const measurer = document.getElementById('text-measurer');
-            measurer.textContent = input.value || "";
-            document.getElementById('fake-cursor').style.left = (16 + measurer.offsetWidth) + "px";
+            const cursor = document.getElementById('fake-cursor');
+            
+            // Logic to snap cursor to left if empty
+            if (!input.value) {
+                cursor.style.left = "16px";
+            } else {
+                measurer.textContent = input.value;
+                cursor.style.left = (16 + measurer.offsetWidth) + "px";
+            }
         }
 
         function handleInput(el) { 
