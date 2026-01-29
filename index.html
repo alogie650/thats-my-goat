@@ -2,74 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>That's My GOAT // Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; overflow-x: hidden; }
-        .solid-box { background: #000; border: 2px solid #333; position: relative; transition: border-color 0.4s ease; }
-        .dynamic-neon { color: #39FF14; text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); letter-spacing: 0.15em; }
-        .gold-glow { color: #FFD700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); }
+        :root { --team-color: #39FF14; }
+        body { background-color: #000; color: #fff; font-family: 'VT323', monospace; font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 0.1em; }
+        .solid-box { background: #000; border: 2px solid #333; position: relative; }
+        .dynamic-neon { color: var(--team-color); transition: all 0.4s ease; }
+        .gold-glow { color: #FFD700; }
         
-        /* SEARCH BAR FIXES */
-        #player-search { caret-color: transparent; z-index: 2; letter-spacing: 0.15em; background: transparent; }
-        #player-search::placeholder { color: #222; }
-        #fake-cursor { position: absolute; width: 14px; height: 24px; background-color: #39FF14; animation: blink 0.6s step-end infinite; pointer-events: none; z-index: 1; top: 50%; transform: translateY(-50%); transition: left 0.1s ease-out; }
+        #player-search { caret-color: transparent; background: transparent; letter-spacing: 0.15em; }
+        #fake-cursor { position: absolute; width: 12px; height: 24px; background-color: var(--team-color); animation: blink 0.6s step-end infinite; pointer-events: none; top: 50%; transform: translateY(-50%); left: 16px; transition: background-color 0.3s ease; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         
-        .suggestion-item { border-bottom: 1px solid #111; transition: all 0.2s; }
-        .suggestion-item:hover { background: #39FF14; color: #000; cursor: pointer; }
-        .goat-blurb { border-top: 2px dashed #333; margin-top: 2rem; padding-top: 1.5rem; color: #aaa; line-height: 1.4; }
+        /* Stats Grid Consistency */
+        .stat-label { font-size: 1.4rem; opacity: 0.6; display: block; margin-bottom: 4px; }
+        .stat-value { font-size: 2rem; font-weight: bold; display: block; }
+        
+        .analysis-text { line-height: 1.3; color: #eee; }
+        
+        /* Quick Hits - Large and Bold */
+        .stat-tag { font-size: 1.8rem; border: 3px solid var(--team-color); padding: 12px 28px; margin-right: 16px; margin-bottom: 16px; color: var(--team-color); display: inline-block; font-weight: bold; }
+        .player-thumb { width: 120px; height: 120px; border: 2px solid var(--team-color); object-fit: cover; margin-right: 30px; }
+        
+        .suggestion-item { border-bottom: 1px solid #111; cursor: pointer; transition: 0.2s; }
+        .suggestion-item:hover { background: var(--team-color); color: #000; }
     </style>
 </head>
-<body class="min-h-screen p-6 md:p-12" onload="initTerminal()">
+<body class="min-h-screen p-4 md:p-12" onload="initTerminal()">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-16">
-            <h1 class="text-6xl md:text-8xl font-normal mb-2 uppercase tracking-widest">
-                THAT'S MY <span id="goat-text" class="dynamic-neon">GOAT</span>
-            </h1>
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-7xl md:text-9xl font-normal tracking-tighter">THAT'S MY <span class="dynamic-neon">GOAT</span></h1>
         </header>
 
-        <div class="relative max-w-2xl mx-auto mb-12">
-            <div class="solid-box p-1 flex gap-2 items-center border-white/20 focus-within:border-[#39FF14]">
-                <div class="relative flex-1 flex items-center h-[60px] overflow-hidden">
-                    <input id="player-search" type="text" autocomplete="off" autofocus
-                           placeholder="ENTER PLAYER NAME"
+        <div class="relative max-w-2xl mx-auto mb-10">
+            <div id="search-container" class="solid-box p-1 flex items-center border-white/20 focus-within:border-[var(--team-color)]">
+                <div class="relative flex-1 flex items-center h-[60px]">
+                    <input id="player-search" type="text" autocomplete="off" autofocus placeholder="SEARCH PLAYER..."
                            class="w-full p-4 bg-transparent text-white outline-none font-bold text-2xl uppercase"
-                           oninput="handleInput(this)"
-                           onkeydown="handleKeyDown(event)"
-                           onfocus="this.value=''">
-                    <div id="fake-cursor" style="left: 16px;"></div>
+                           oninput="handleInput(this)">
+                    <div id="fake-cursor"></div>
                 </div>
-                <button onclick="performGlobalSearch()" class="bg-[#39FF14] text-black font-bold px-10 py-4 hover:bg-white transition-colors text-xl tracking-widest">SEARCH</button>
             </div>
-            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[300px] overflow-y-auto"></div>
+            <div id="suggestions" class="hidden absolute left-0 right-0 mt-1 solid-box z-50 bg-black max-h-[400px] overflow-y-auto"></div>
         </div>
 
         <div id="result-area" class="hidden">
-            <div id="player-card" class="solid-box p-8 md:p-12 border-l-8 border-[#39FF14]">
-                <div class="mb-10">
-                    <h2 id="p-name" class="text-5xl md:text-7xl font-bold dynamic-neon leading-none mb-4 tracking-wider"></h2>
-                    <p id="p-team" class="text-3xl font-bold text-white tracking-[0.2em]"></p>
+            <div id="player-card" class="solid-box p-8 md:p-12 border-l-[12px] border-[var(--team-color)] transition-all duration-500">
+                <div class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+                    <div class="flex items-center">
+                        <div id="p-thumb-container" class="hidden">
+                            <img id="p-thumb" src="" class="player-thumb">
+                        </div>
+                        <div>
+                            <h2 id="p-name" class="text-6xl md:text-8xl font-bold dynamic-neon leading-none mb-2"></h2>
+                            <p id="p-team" class="text-3xl text-white opacity-70 tracking-widest"></p>
+                        </div>
+                    </div>
+                    <div class="text-left md:text-right min-w-[280px]">
+                        <div class="mb-6">
+                            <span class="block text-xl opacity-80 mb-1 font-bold">CHAMPIONSHIPS</span>
+                            <div id="p-rings" class="text-5xl gold-glow tracking-widest"></div>
+                        </div>
+                        <div>
+                            <span class="block text-xl opacity-80 mb-1 font-bold">LEAGUE MVPS</span>
+                            <div id="p-mvps" class="text-5xl dynamic-neon tracking-widest"></div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-t-2 border-white/10 pt-10">
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">HEIGHT</span><span id="p-height" class="text-2xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">WEIGHT</span><span id="p-weight" class="text-2xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">DIVISION</span><span id="p-div" class="text-2xl font-bold tracking-widest"></span></div>
-                    <div><span class="block text-sm opacity-50 mb-2 tracking-[0.3em]">POSITION</span><span id="p-pos" class="text-2xl font-bold tracking-widest"></span></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 bg-white/5 p-8 border border-white/10">
+                    <div><span class="stat-label">HEIGHT / WEIGHT</span><span id="p-phys" class="stat-value"></span></div>
+                    <div><span class="stat-label">POSITION</span><span id="p-pos" class="stat-value"></span></div>
+                    <div><span class="stat-label">ACTIVE SINCE</span><span id="p-exp" class="stat-value"></span></div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-white/5">
-                    <span class="block text-sm gold-glow mb-1 tracking-[0.4em]">CHAMPIONSHIPS:</span>
-                    <span id="p-rings" class="text-4xl font-bold gold-glow"></span>
+                <div class="mb-14">
+                    <h3 class="dynamic-neon text-5xl font-bold mb-8 flex items-center">
+                        <span class="mr-4 text-4xl">▶</span> THE GOAT CASE
+                    </h3>
+                    <div id="p-case" class="analysis-text text-3xl md:text-4xl italic border-l-4 border-white/20 pl-8 space-y-4"></div>
                 </div>
 
-                <div class="goat-blurb">
-                    <span class="block text-3xl dynamic-neon mb-3 tracking-[0.4em] font-bold">GOAT CASE:</span>
-                    <p id="p-case" class="text-xl italic leading-relaxed"></p>
+                <div class="border-t border-white/10 pt-12">
+                    <span class="block text-4xl dynamic-neon font-bold mb-10">QUICK HITS:</span>
+                    <div id="p-sig" class="flex flex-wrap"></div>
                 </div>
             </div>
         </div>
@@ -78,154 +99,128 @@
     <span id="text-measurer" style="visibility: hidden; position: absolute; white-space: pre; font-family: 'VT323'; font-size: 24px; letter-spacing: 0.15em;"></span>
 
     <script>
-        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f'; 
+        const API_KEY = 'd5bf99e2-09d5-44fd-8e09-d00c9e679c6f';
         let debounceTimer;
 
-        const RING_REGISTRY = {
-            "James": 4, "Curry": 4, "Thompson": 4, "Green": 4, "Durant": 2, "Leonard": 2, "Holiday": 2,
-            "Caldwell-Pope": 2, "Antetokounmpo": 1, "Jokic": 1, "Davis": 1, "Irving": 1, "Tatum": 1, 
-            "Brown": 1, "White": 1, "Horford": 1, "Murray": 1, "Gordon": 1, "Looney": 3, "McGee": 3,
-            "Lowry": 1, "Siakam": 1, "Middleton": 1, "Lopez": 1, "Caruso": 2
+        const TEAM_COLORS = {
+            'LAL': '#FDB927', 'GSW': '#FFC72C', 'PHX': '#E56020', 'DEN': '#FEC524', 'MIL': '#00471B', 'BOS': '#007A33',
+            'DAL': '#00538C', 'PHI': '#006BB6', 'LAC': '#C8102E', 'MIA': '#98002E', 'OKC': '#007AC1', 'SAS': '#C4CED4',
+            'CHI': '#CE1141', 'CLE': '#860038', 'NYK': '#F58426'
         };
 
-        const LEGEND_BLURBS = {
-            "James": "THE ALL-TIME SCORING KING. A MASTER OF LONGEVITY WHO HAS DOMINATED THREE DIFFERENT DECADES. HIS BASKETBALL IQ REMAINS THE HIGHEST THE LEAGUE HAS EVER SEEN.",
-            "Curry": "THE GREATEST SHOOTER IN HISTORY. HIS 'GRAVITY' REWROTE THE MODERN OFFENSIVE PLAYBOOK. THE ONLY UNANIMOUS MVP FOR A REASON.",
-            "Jokic": "A TRIPLE-DOUBLE MACHINE IN A 7-FOOT FRAME. HE HAS REDEFINED THE CENTER POSITION AS A PRIMARY PLAYMAKER AND EFFICIENCY GOD.",
-            "Doncic": "A SAVANT-LEVEL SCORER AND PASSMAKER. HE MANIPULATES DEFENSES AT HIS OWN PACE, MAKING THE ELITE LOOK ORDINARY.",
-            "Durant": "THE MOST EFFORTLESS SCORER THE WING HAS EVER SEEN. A 7-FOOTER WITH THE TOUCH OF A GUARD. UNGUARDABLE AT ANY LEVEL.",
-            "Wembanyama": "THE 'ALIEN.' A DEFENSIVE ANOMALY WITH A PERIMETER BAG. THE MOST ANTICIPATED PROSPECT SINCE LEBRON FOR A REASON.",
-            "Antetokounmpo": "A PHYSICAL FORCE UNLIKE ANY OTHER. THE GREEK FREAK COMBINES DPOY-LEVEL DEFENSE WITH UNSTOPPABLE INTERIOR SCORING.",
-            "Embiid": "THE ULTIMATE MODERN CENTER. HE PAIRS OLD-SCHOOL BACK-TO-THE-BASKET POWER WITH ELITE MID-RANGE AND FACE-UP SKILLS."
-        };
+        const LOCAL_DB = [
+            { 
+                first_name: "LeBron", last_name: "James", team: { full_name: "Los Angeles Lakers", abbreviation: "LAL" }, 
+                height: "6-9", weight: "250", position: "Forward", rings: 4, mvps: 4, rookie: 2003, 
+                blurb: "THE ULTIMATE BASKETBALL ARCHETYPE. LEBRON'S CASE RESTS ON THE UNPRECEDENTED INTERSECTION OF PEAK DOMINANCE AND SUPERNATURAL LONGEVITY. HE IS THE ONLY ENTITY IN HISTORY TO RECORD 40K POINTS, 11K REBOUNDS, AND 11K ASSISTS, EFFECTIVELY BECOMING THE ALL-TIME STATISTICAL STANDARD. HIS GOAT STATUS IS DEFINED BY CARRYING VARIED ROSTERS TO TEN NBA FINALS ACROSS THREE DECADES, PROVING AN ADAPTABILITY NO OTHER PLAYER HAS MATCHED. HE IS NOT JUST A PLAYER; HE IS A TOTAL OFFENSIVE AND DEFENSIVE SYSTEM UNTO HIMSELF.", 
+                sigs: ["40K SCORING CLUB", "ALL-TIME VORP LEADER", "8 CONSECUTIVE FINALS", "PER: 27.1"] 
+            },
+            { 
+                first_name: "Stephen", last_name: "Curry", 
+                image: "https://i.imgur.com/1wW2KKp.png", // Direct link from the gallery you provided
+                team: { full_name: "Golden State Warriors", abbreviation: "GSW" }, 
+                height: "6-2", weight: "185", position: "Guard", rings: 4, mvps: 2, rookie: 2009, 
+                blurb: "THE GREATEST OFFENSIVE RADIUS IN HUMAN HISTORY. CURRY DIDN'T JUST PLAY THE GAME; HE BROKE ITS MATHEMATICAL FOUNDATION. HIS GRAVITY REWRITES DEFENSIVE COORDINATES, FORCING OPPONENTS TO GUARD THE LOGO AND STRETCHING THE COURT BEYOND PREVIOUSLY IMAGINED LIMITS. HE IS THE CATALYST FOR THE MODERN ERA, TRANSFORMING THE THREE-POINT LINE FROM A SPECIALTY TOOL INTO THE PRIMARY WEAPON OF THE SPORT. HIS UNANIMOUS MVP SEASON AND FOUR TITLES ARE MERELY SYMPTOMS OF HIS TOTAL REVOLUTION OF BASKETBALL PHYSICS.", 
+                sigs: ["4K+ 3PM", "91% FT ALL-TIME", "UNANIMOUS MVP", "OFF-BALL ELITE"] 
+            },
+            { 
+                first_name: "Nikola", last_name: "Jokic", team: { full_name: "Denver Nuggets", abbreviation: "DEN" }, 
+                height: "6-11", weight: "284", position: "Center", rings: 1, mvps: 3, rookie: 2014, 
+                blurb: "THE MOST EFFICIENT OFFENSIVE ENGINE EVER ASSEMBLED. JOKIC HAS REDEFINED THE CENTER POSITION AS A POINT-GUARD/POST-GOD HYBRID, OPERATING AT A STATISTICAL STRATOSPHERE PREVIOUSLY ONLY OCCUPIED BY PEAK JORDAN AND WILT CHAMBERLAIN. HIS GOAT CASE IS BUILT ON AN UNMATCHED BASKETBALL IQ THAT ALLOWS HIM TO DISMANTLE ELITE DEFENSES WITHOUT PHYSICAL OVERPOWERING. HE IS THE PEAK OF POSITIONAL-LESS BASKETBALL, HOLDING THE RECORD FOR THE HIGHEST SINGLE-SEASON PLAYER EFFICIENCY RATING IN HISTORY.", 
+                sigs: ["TRIPLE-DOUBLE MACHINE", "HIGHEST SEASON PER", "PASSING SAVANT", "PER: 28.1"] 
+            },
+            { 
+                first_name: "Michael", last_name: "Jordan", team: { full_name: "Chicago Bulls", abbreviation: "CHI" }, 
+                height: "6-6", weight: "216", position: "Guard", rings: 6, mvps: 5, rookie: 1984, 
+                blurb: "THE STANDARD OF EXCELLENCE. JORDAN'S CASE IS SURROUNDED BY AN AURA OF INFALLIBILITY: A PERFECT 6-0 RECORD IN THE FINALS WITH SIX FINALS MVPS. HE COMBINED THE HIGHEST PEAK OF SCORING VOLUME WITH DPOY-LEVEL DEFENSIVE ANNIHILATION. BEYOND THE STATS, HIS GLOBAL IMPACT AND PSYCHOLOGICAL DOMINANCE OVER AN ENTIRE GENERATION OF HALL OF FAMERS CREATE A LEGACY OF ABSOLUTE COMPETITIVE SUPERIORITY. HE IS THE ARCHITECT OF THE MODERN NBA SUPERSTAR AND REMAINS THE BENCHMARK AGAINST WHICH ALL GREATNESS IS MEASURED.", 
+                sigs: ["6-0 FINALS RECORD", "10X SCORING CHAMP", "DPOY 1988", "30.1 PPG CAREER"] 
+            }
+        ];
 
-        function initTerminal() {
-            const input = document.getElementById('player-search');
-            input.focus();
-            updateCursor();
+        function formatPosition(pos) {
+            if (!pos) return "N/A";
+            const map = { 'G': 'Guard', 'F': 'Forward', 'C': 'Center', 'G-F': 'Guard/Forward', 'F-G': 'Forward/Guard', 'F-C': 'Forward/Center', 'C-F': 'Center/Forward' };
+            const upper = pos.toUpperCase();
+            return map[upper] || pos;
         }
 
-        // --- CRITICAL FIX: CURSOR POSITIONING ---
+        function initTerminal() { document.getElementById('player-search').focus(); updateCursor(); }
+
         function updateCursor() {
             const input = document.getElementById('player-search');
-            const cursor = document.getElementById('fake-cursor');
             const measurer = document.getElementById('text-measurer');
-            
             measurer.textContent = input.value || "";
-            // 16px is the padding-left of the input
-            const textWidth = measurer.offsetWidth;
-            cursor.style.left = (16 + textWidth) + "px";
+            document.getElementById('fake-cursor').style.left = (16 + measurer.offsetWidth) + "px";
         }
 
         function handleInput(el) { 
             updateCursor(); 
-            if (el.value.length >= 2) { 
-                debouncedSearch(el.value); 
-            } else { 
-                document.getElementById('suggestions').classList.add('hidden'); 
-            }
-        }
-
-        function handleKeyDown(e) {
-            if (e.key === 'Enter') performGlobalSearch();
-            setTimeout(updateCursor, 10); // Update cursor position after key press
-        }
-
-        function debouncedSearch(val) {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => fetchPlayers(val, true), 250);
-        }
-
-        async function fetchPlayers(query, isDropdown = false) {
-            const terms = query.trim().split(/\s+/);
-            let url = `https://api.balldontlie.io/v1/players?`;
-            url += terms.length > 1 
-                ? `first_name=${encodeURIComponent(terms[0])}&last_name=${encodeURIComponent(terms[1])}` 
-                : `search=${encodeURIComponent(terms[0])}`;
-            
-            try {
-                const res = await fetch(url, { headers: { 'Authorization': API_KEY } });
-                const json = await res.json();
-                if (isDropdown) renderSuggestions(json.data || []);
-                return json.data || [];
-            } catch (err) { 
-                console.error("API Error:", err); 
+            const val = el.value.trim().toLowerCase();
+            if (val.length < 2) { 
+                document.getElementById('suggestions').classList.add('hidden'); 
+                return; 
             }
+            const localMatches = LOCAL_DB.filter(p => (p.first_name + " " + p.last_name).toLowerCase().includes(val));
+            renderSuggestions(localMatches);
         }
 
         function renderSuggestions(players) {
             const dropdown = document.getElementById('suggestions');
             dropdown.innerHTML = '';
-            if (players.length === 0) { 
-                dropdown.classList.add('hidden'); 
-                return; 
-            }
+            if (players.length === 0) { dropdown.classList.add('hidden'); return; }
             players.slice(0, 8).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggestion-item p-4 uppercase font-bold';
-                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-40 ml-2">// ${p.team.abbreviation}</span>`;
+                div.className = 'suggestion-item p-4 font-bold';
+                div.innerHTML = `${p.first_name} ${p.last_name} <span class="opacity-30 ml-2">// ${p.team.abbreviation}</span>`;
                 div.onclick = () => selectPlayer(p);
                 dropdown.appendChild(div);
             });
             dropdown.classList.remove('hidden');
         }
 
-        async function typeWriter(text, elementId, speed = 15) {
+        async function typeWriter(text, elementId, speed = 8) {
             const el = document.getElementById(elementId);
             el.innerHTML = "";
             for (let i = 0; i < text.length; i++) {
                 el.innerHTML += text.charAt(i);
-                await new Promise(resolve => setTimeout(resolve, speed));
+                await new Promise(r => setTimeout(r, speed));
             }
         }
 
-        function formatPosition(pos) {
-            if (!pos) return "N/A";
-            return pos.replace(/G/g, "GUARD").replace(/F/g, "FORWARD").replace(/C/g, "CENTER").replace("-", " / ");
-        }
-
-        function generateGoatCase(p) {
-            if (LEGEND_BLURBS[p.last_name]) return LEGEND_BLURBS[p.last_name];
-            const pos = p.position || "";
-            const team = p.team.abbreviation;
-            if (pos.includes("G")) return `A DYNAMIC BACKCOURT ENGINE. ${p.last_name} DEFINES THE PACE FOR THE ${team}, BLENDING ELITE PLAYMAKING WITH MODERN RANGE.`;
-            if (pos.includes("F")) return `A VERSATILE FORWARD FOR THE ${team}. HIS TWO-WAY IMPACT AND ADAPTABILITY ARE VITAL IN TODAY'S POSITIONLESS BASKETBALL.`;
-            return `A UNIQUE TALENT IN THE ${team} ROTATION. HE REMAINS A KEY COMPONENT IN THE LEAGUE'S GLOBAL EVOLUTION OF SKILL.`;
-        }
-
-        async function performGlobalSearch() {
-            const query = document.getElementById('player-search').value.trim();
-            if (!query) return;
-            const results = await fetchPlayers(query, false);
-            if (results && results.length > 0) selectPlayer(results[0]);
-        }
-
         async function selectPlayer(p) {
-            // Reset dropdown and sync input
             document.getElementById('suggestions').classList.add('hidden');
-            const input = document.getElementById('player-search');
-            input.value = `${p.first_name} ${p.last_name}`;
-            updateCursor(); // Recalculate green box position immediately
-
-            const themeColor = '#39FF14';
+            const color = TEAM_COLORS[p.team?.abbreviation] || '#39FF14';
+            document.documentElement.style.setProperty('--team-color', color);
+            document.getElementById('player-search').value = "";
+            updateCursor();
             document.getElementById('result-area').classList.remove('hidden');
-            document.getElementById('player-card').style.borderColor = themeColor;
-            document.getElementById('p-name').style.color = themeColor;
+            
+            const thumbImg = document.getElementById('p-thumb');
+            if (p.image) {
+                thumbImg.src = p.image;
+                document.getElementById('p-thumb-container').classList.remove('hidden');
+            } else {
+                document.getElementById('p-thumb-container').classList.add('hidden');
+            }
 
-            const ringCount = RING_REGISTRY[p.last_name] || 0;
-            const ringDisplay = ringCount > 0 ? "🏆".repeat(ringCount) : "0";
+            const sigContainer = document.getElementById('p-sig');
+            sigContainer.innerHTML = '';
+            (p.sigs || []).forEach(s => {
+                const span = document.createElement('span');
+                span.className = 'stat-tag';
+                span.innerText = s;
+                sigContainer.appendChild(span);
+            });
 
-            // Typing sequence
-            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 15);
+            await typeWriter(`${p.first_name} ${p.last_name}`, 'p-name', 12);
             await typeWriter(p.team.full_name, 'p-team', 10);
-            
-            typeWriter(p.height || "N/A", 'p-height', 15);
-            typeWriter(p.weight ? `${p.weight} LBS` : "N/A", 'p-weight', 15);
-            typeWriter(p.team.division || "N/A", 'p-div', 15);
-            typeWriter(formatPosition(p.position), 'p-pos', 15);
-            
-            await typeWriter(ringDisplay, 'p-rings', 50);
-            typeWriter(generateGoatCase(p), 'p-case', 8);
+            document.getElementById('p-rings').innerHTML = "🏆".repeat(p.rings || 0) || "NONE";
+            document.getElementById('p-mvps').innerHTML = "⭐".repeat(p.mvps || 0) || "NONE";
+            document.getElementById('p-phys').innerText = `${p.height} / ${p.weight} LBS`;
+            document.getElementById('p-pos').innerText = formatPosition(p.position);
+            document.getElementById('p-exp').innerText = `${p.rookie} (${2026 - p.rookie} SEASONS)`;
+            await typeWriter(p.blurb, 'p-case', 4);
         }
     </script>
 </body>
